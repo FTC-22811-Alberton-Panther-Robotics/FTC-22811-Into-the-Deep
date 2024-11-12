@@ -80,8 +80,8 @@ public class MorrisPOVDrive extends LinearOpMode {
         double forward;
         double turn;
         double strafe;
-        double armRotateTarget = robot.getArmAngle();  // Initialize arm to current position
-        double liftExtendTarget = robot.getLiftExtension(); // Initialize lift to current position
+//        double armRotateTarget = robot.getArmAngle();  // Initialize arm to current position
+//        double liftExtendTarget = robot.getLiftExtension(); // Initialize lift to current position
         double gripper   = 0;
         double aLastTime = 0, bLastTime = 0, xLastTime = 0, yLastTime = 0, rBLastTime = 0, lBLastTime = 0;
     //    boolean backButtonPressed = false;
@@ -154,40 +154,40 @@ public class MorrisPOVDrive extends LinearOpMode {
             // Use gamepad buttons to rotate arm forward/down (Y) and back/up (A)
             // Use the MOTOR constants defined in org.firstinspires.ftc.teamcode.RobotHardware class.
             /** Mr. Morris: Consider redefining the arm movements to use a joystick with a,b,x,y buttons reserved for preset positions like in FTC season */
-            if (gamepad1.y)
-                if (getRuntime() - yLastTime > BUTTON_PRESS_DELAY) {
-                    if (armRotateTarget < RobotHardware.ARM_ROTATE_MAX)
-                        armRotateTarget += RobotHardware.ARM_INCREMENT_DEGREES; // rotate arm up when Y is pressed
-                    yLastTime = getRuntime();
-                }
-            else if (gamepad1.a)
-                if (getRuntime() - aLastTime > BUTTON_PRESS_DELAY) {
-                    if (armRotateTarget > RobotHardware.ARM_ROTATE_MIN)
-                        armRotateTarget -= RobotHardware.ARM_INCREMENT_DEGREES; // rotate arm down when A is pressed
-                    aLastTime = getRuntime();
-                }
+//            if (gamepad1.y)
+//                if (getRuntime() - yLastTime > BUTTON_PRESS_DELAY) {
+//                    if (armRotateTarget < RobotHardware.ARM_ROTATE_MAX)
+//                        armRotateTarget += RobotHardware.ARM_INCREMENT_DEGREES; // rotate arm up when Y is pressed
+//                    yLastTime = getRuntime();
+//                }
+//            else if (gamepad1.a)
+//                if (getRuntime() - aLastTime > BUTTON_PRESS_DELAY) {
+//                    if (armRotateTarget > RobotHardware.ARM_ROTATE_MIN)
+//                        armRotateTarget -= RobotHardware.ARM_INCREMENT_DEGREES; // rotate arm down when A is pressed
+//                    aLastTime = getRuntime();
+//                }
 
-            // Use gamepad buttons to extend lift (X) and retract lift (B)
-            // Use the MOTOR constants defined in org.firstinspires.ftc.teamcode.RobotHardware class.
-            if (gamepad1.x && getRuntime() - xLastTime > BUTTON_PRESS_DELAY) {
-                if (liftExtendTarget < RobotHardware.LIFT_EXTEND_MAX)
-                    liftExtendTarget += RobotHardware.LIFT_EXTEND_INCREMENT; // extend when X is pressed
-                xLastTime = getRuntime();
-                }
-            else if (gamepad1.b && getRuntime() - bLastTime > BUTTON_PRESS_DELAY) {
-                if (liftExtendTarget > RobotHardware.LIFT_RETRACT_MAX) {
-                    liftExtendTarget -= RobotHardware.LIFT_RETRACT_INCREMENT; // retract when B is pressed
-                }
-                bLastTime = getRuntime();
-            }
-            else liftExtendTarget = 0; // don't move if x and b aren't pressed.
-            robot.setArmPosition(armRotateTarget); //send rotation values to robot
-            robot.setLiftPosition(liftExtendTarget); // send extension values to robot
+//            // Use gamepad buttons to extend lift (X) and retract lift (B)
+//            // Use the MOTOR constants defined in org.firstinspires.ftc.teamcode.RobotHardware class.
+//            if (gamepad1.x && getRuntime() - xLastTime > BUTTON_PRESS_DELAY) {
+//                if (liftExtendTarget < RobotHardware.LIFT_EXTEND_MAX)
+//                    liftExtendTarget += RobotHardware.LIFT_EXTEND_INCREMENT; // extend when X is pressed
+//                xLastTime = getRuntime();
+//                }
+//            else if (gamepad1.b && getRuntime() - bLastTime > BUTTON_PRESS_DELAY) {
+//                if (liftExtendTarget > RobotHardware.LIFT_RETRACT_MAX) {
+//                    liftExtendTarget -= RobotHardware.LIFT_RETRACT_INCREMENT; // retract when B is pressed
+//                }
+//                bLastTime = getRuntime();
+//            }
+//            else liftExtendTarget = 0; // don't move if x and b aren't pressed.
+////            robot.setArmPosition(armRotateTarget); //send rotation values to robot
+//            robot.setLiftPosition(liftExtendTarget); // send extension values to robot
 
             /** This code needs updated. We probably don't want the wrist matching the arm angle all the time since it needs to reach back to the lift */
             // Move wrist so that it moves when arm rotates to keep gripper parallel to floor
             // e.g. if arm angle is at -30 (30 degrees below forward horizontal), wrist must be 30 (30 degrees above forward horizontal) to keep gripper horizontal
-            robot.setWristAngle(-robot.getArmAngle());
+//            robot.setWristAngle(-robot.getArmAngle());
 
             // Send telemetry messages to explain controls and show robot status
             telemetry.addData("Drive", "Left Stick");

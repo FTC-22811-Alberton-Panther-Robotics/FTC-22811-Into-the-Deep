@@ -48,7 +48,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 
 @TeleOp(name="Morris Iterative OpMode", group="Test Code")
-@Disabled
+//@Disabled
 public class MorrisIterative extends OpMode
 {
 
