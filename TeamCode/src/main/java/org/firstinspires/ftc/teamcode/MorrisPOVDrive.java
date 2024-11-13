@@ -170,13 +170,13 @@ public class MorrisPOVDrive extends LinearOpMode {
 //            // Use gamepad buttons to extend lift (X) and retract lift (B)
 //            // Use the MOTOR constants defined in org.firstinspires.ftc.teamcode.RobotHardware class.
 //            if (gamepad1.x && getRuntime() - xLastTime > BUTTON_PRESS_DELAY) {
-//                if (liftExtendTarget < RobotHardware.LIFT_EXTEND_MAX)
-//                    liftExtendTarget += RobotHardware.LIFT_EXTEND_INCREMENT; // extend when X is pressed
+//                if (liftExtendTarget < RobotHardware.LIFT_EXTEND_3STAGE_MAX_INCHES)
+//                    liftExtendTarget += RobotHardware.LIFT_EXTEND_INCREMENT_INCHES; // extend when X is pressed
 //                xLastTime = getRuntime();
 //                }
 //            else if (gamepad1.b && getRuntime() - bLastTime > BUTTON_PRESS_DELAY) {
-//                if (liftExtendTarget > RobotHardware.LIFT_RETRACT_MAX) {
-//                    liftExtendTarget -= RobotHardware.LIFT_RETRACT_INCREMENT; // retract when B is pressed
+//                if (liftExtendTarget > RobotHardware.LIFT_RETRACT_MAX_INCHES) {
+//                    liftExtendTarget -= RobotHardware.LIFT_RETRACT_INCREMENT_INCHES; // retract when B is pressed
 //                }
 //                bLastTime = getRuntime();
 //            }

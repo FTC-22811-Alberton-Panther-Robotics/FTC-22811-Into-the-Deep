@@ -33,22 +33,18 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-/*
- * This OpMode is based on the RobotAutoDriveByTime_Linear sample code.
+/**
+ * Mr. Morris: This OpMode is based on the RobotAutoDriveByTime_Linear sample code.
  * I have adapted it to utilize the RobotHardware class.
+ * I also added a configuration menu during robot initialization and sections for various
+ * versions of the code dependent on alliance and starting location.
  *
- * The code assumes that you do NOT have encoders on the wheels,
+ * At some point I hope to move to RoadRunner or at least an Encoder based auto, but for now
+ * time based will get us started.
+ */
+
+/* The code assumes that you do NOT have encoders on the wheels,
  *   otherwise you would use: RobotAutoDriveByEncoder;
- *
- *   The desired path in this example is:
- *   - Drive forward for 3 seconds
- *   - Spin right for 1.3 seconds
- *   - Strafe right for 1 second
- *   - Drive diagonally to left for 2 seconds
- *   - Drive Backward for 1 Second
- *   - Drive in an arc to the left for 4 seconds
- *   - Stop
- *
  */
 
 @Autonomous(name="Robot: Auto Drive By Time", group="Test Code", preselectTeleOp = "MorrisPOVDrive")
@@ -63,7 +59,6 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
     int legNumber = 0;
     boolean isRedAlliance = true;
     boolean isNearStart = true;
-    boolean option3 = true;
     double startingPause = 0;
 
     @Override
@@ -149,7 +144,7 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
      */
     private void configAutonomous(){
         int selection = 0;
-        final int SELECTION_COUNT = 4; // Number of options in selection list.
+        final int SELECTION_COUNT = 3; // Number of options in selection list.
         boolean dpadDownPressed = false;
         boolean dpadUpPressed = false;
         boolean dpadRightOrLeftPressed = false;
@@ -174,7 +169,7 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
                 if (selection >0) selection -= 1;
             }
 
-            // This block displays an arrow next to the option currently being selected and waits for
+            // The following blocks display an arrow next to the option currently being selected and wait for
             // you to toggle that option by pressing either dpad_left or dpad_right
             if(selection == 1) {
                 telemetry.addData("-->Alliance: ", isRedAlliance ?"Red": "Blue"); //This syntax is an inline if statement that can be used in simple cases
@@ -195,15 +190,6 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
             } else telemetry.addData("Starting Position: ", isNearStart ?"Near": "Far");
 
             if(selection == 3) {
-                telemetry.addData("-->Option 3: ", option3 ?"True": "False");
-                if(gamepad1.dpad_right || gamepad1.dpad_left) dpadRightOrLeftPressed = true;
-                else if(dpadRightOrLeftPressed && !(gamepad1.dpad_right || gamepad1.dpad_left)){
-                    dpadRightOrLeftPressed = false;
-                    isNearStart = !isNearStart;
-                }
-            } else telemetry.addData("Option 3: ", option3 ?"True": "False");
-
-            if(selection == 4) {
                 telemetry.addData("-->Starting Pause: ", startingPause +" seconds");
                 if(gamepad1.dpad_right) dpadRightOrLeftPressed = true;
                 else if(dpadRightOrLeftPressed && !gamepad1.dpad_right){

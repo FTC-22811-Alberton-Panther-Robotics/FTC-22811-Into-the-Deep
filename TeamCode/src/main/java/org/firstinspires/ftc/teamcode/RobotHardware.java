@@ -30,7 +30,6 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
@@ -76,10 +75,10 @@ public class RobotHardware {
     // For example, use a value of 2.0 for a 12-tooth spur gear driving a 24-tooth spur gear.
     // This is gearing DOWN for less speed and more torque.
     // For gearing UP, use a gear ratio less than 1.0. Note this will affect the direction of wheel rotation.
-    static final double     COUNTS_PER_MOTOR_REV    = 537.7 ;    // GoBilda 312rpm motor has this encoder resolution
+    static final double     COUNTS_PER_MOTOR_REVOL    = 537.7 ;    // GoBilda 312rpm motor has this encoder resolution
     static final double     DRIVE_GEAR_REDUCTION    = 1 ;     // No Gear Reduction.
     static final double     WHEEL_DIAMETER_INCHES   = 96 * 25.4 ;     // 96mm converted to inches. For figuring circumference
-    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
+    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REVOL * DRIVE_GEAR_REDUCTION) /
                                                                         (WHEEL_DIAMETER_INCHES * 3.1415);
 
     // Define Drive constants.  Make them public so they CAN be used by the calling OpMode
@@ -88,11 +87,10 @@ public class RobotHardware {
     public static final double GRIPPER_INCREMENT = 0.02, GRIPPER_MAX = 1, GRIPPER_MIN = 0 ;  // sets rate to move gripper servo and max and min travel. If you use SRS servo programmer to set limits, this will be 1 and 0. If you need to limit travel in the software, this is where to do it.
     public static final double WRIST_INCREMENT = 0.02 ; // sets rate to move wrist servo
     public static final double WRIST_MAX_ANGLE  = 300 ; // Adjust this angle if SRS servo programmer has limited servo travel to less than 300
-    public static final int ARM_INCREMENT_DEGREES = 5, ARM_ROTATE_MAX = 225, ARM_ROTATE_MIN = -45 ;
-    public static final double ARM_ROTATE_ENCODER_RESOLUTION = 28, ARM_ROTATE_GEAR_RATIO = 60 ;
-    public static final double LIFT_EXTEND_INCREMENT = 0.10, LIFT_RETRACT_INCREMENT = -0.10 ;
-    public static final double LIFT_EXTEND_MAX = 1000; /** TO DO: This is almost certainly a wrong number for the max travel.*/
-    public static final double LIFT_RETRACT_MAX = 0; /** TO DO: This is almost certainly a wrong number for the max travel.*/
+    public static final int ARM_INCREMENT_DEGREES = 5, ARM_ROTATE_MAX = 120, ARM_ROTATE_MIN = -20, // Straight forward defined as 0 degrees
+                            ARM_ROTATE_ENCODER_RESOLUTION = 28, ARM_ROTATE_GEAR_RATIO = 60, ARM_STARTING_ANGLE_OFFSET = 120;
+    public static final double LIFT_TRAVEL_PER_ROTATION_INCHES = 120 / 25.4, LIFT_EXTEND_INCREMENT_INCHES = 0.50,
+                     LIFT_RETRACT_INCREMENT_INCHES = -0.50, LIFT_EXTEND_3STAGE_MAX_INCHES = 732 / 25.4, LIFT_RETRACT_MAX_INCHES = 0;
 
 //     Define vision defaults
 //        private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
@@ -279,7 +277,10 @@ public class RobotHardware {
      *                    Add telemetry statement to test and adjust this.
      */
     public double getArmAngle(){
-        return armRotate.getCurrentPosition() * 360 / (ARM_ROTATE_ENCODER_RESOLUTION * ARM_ROTATE_GEAR_RATIO);
+        int encoderCounts = armRotate.getCurrentPosition();
+        double motorShaftRevolutions = (double) encoderCounts / ARM_ROTATE_ENCODER_RESOLUTION;
+        double outputShaftRevolutions = motorShaftRevolutions * ARM_ROTATE_GEAR_RATIO;
+        return outputShaftRevolutions * 360 + ARM_STARTING_ANGLE_OFFSET;
     }
 
     public double getLiftExtension(){
