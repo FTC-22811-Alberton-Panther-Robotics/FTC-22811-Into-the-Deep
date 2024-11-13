@@ -182,7 +182,7 @@ public class MorrisPOVDrive extends LinearOpMode {
 //            }
 //            else liftExtendTarget = 0; // don't move if x and b aren't pressed.
 ////            robot.setArmPosition(armRotateTarget); //send rotation values to robot
-//            robot.setLiftPosition(liftExtendTarget); // send extension values to robot
+//            robot.setLiftPositionInches(liftExtendTarget); // send extension values to robot
 
             /** This code needs updated. We probably don't want the wrist matching the arm angle all the time since it needs to reach back to the lift */
             // Move wrist so that it moves when arm rotates to keep gripper parallel to floor

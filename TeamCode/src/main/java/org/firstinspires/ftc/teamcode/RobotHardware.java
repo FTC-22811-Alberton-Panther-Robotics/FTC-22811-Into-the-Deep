@@ -89,8 +89,9 @@ public class RobotHardware {
     public static final double WRIST_MAX_ANGLE  = 300 ; // Adjust this angle if SRS servo programmer has limited servo travel to less than 300
     public static final int ARM_INCREMENT_DEGREES = 5, ARM_ROTATE_MAX = 120, ARM_ROTATE_MIN = -20, // Straight forward defined as 0 degrees
                             ARM_ROTATE_ENCODER_RESOLUTION = 28, ARM_ROTATE_GEAR_RATIO = 60, ARM_STARTING_ANGLE_OFFSET = 120;
-    public static final double LIFT_TRAVEL_PER_ROTATION_INCHES = 120 / 25.4, LIFT_EXTEND_INCREMENT_INCHES = 0.50,
-                     LIFT_RETRACT_INCREMENT_INCHES = -0.50, LIFT_EXTEND_3STAGE_MAX_INCHES = 732 / 25.4, LIFT_RETRACT_MAX_INCHES = 0;
+    public static final double LIFT_ENCODER_RESOLUTION = 28, LIFT_GEAR_RATIO = 20, LIFT_TRAVEL_PER_ROTATION_INCHES = 120 / 25.4,
+            LIFT_EXTEND_INCREMENT_INCHES = 0.50, LIFT_RETRACT_INCREMENT_INCHES = -0.50, LIFT_EXTEND_3STAGE_MAX_INCHES = 732 / 25.4,
+            LIFT_RETRACT_MAX_INCHES = 0;
 
 //     Define vision defaults
 //        private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
@@ -250,20 +251,14 @@ public class RobotHardware {
         return new int[]{leftFrontDrive.getCurrentPosition(), leftRearDrive.getCurrentPosition(), rightFrontDrive.getCurrentPosition(), rightRearDrive.getCurrentPosition()};
     }
     /**
-     * Pass the requested arm power to the appropriate hardware drive motor
+     * Given an angle to set the arm to, convert to encoder values and set the arm position
+     * Change motor direction depending on if it is above or below the desired position
      *
-     * @param targetAngle angle from -45 to 225
+     * @param targetAngle angle from -20 to 120
      */
     public void setArmPosition(double targetAngle) {
-        armRotate.setTargetPosition((int) targetAngle);
-        /**
-         * Need to write code to set power whose direction is dependent on current position,
-         * preferably a PID type implementation
-         */
-    }
 
-    public void setLiftPosition(double targetPosition) {
-        armRotate.setTargetPosition((int) targetPosition);
+        armRotate.setTargetPosition((int) targetAngle);
         /**
          * Need to write code to set power whose direction is dependent on current position,
          * preferably a PID type implementation
@@ -276,15 +271,37 @@ public class RobotHardware {
      *                    i.e. if starting location is -45 degrees, initialize and offset it at program start to account for this.
      *                    Add telemetry statement to test and adjust this.
      */
-    public double getArmAngle(){
+    public double getArmAngleDegrees(){
         int encoderCounts = armRotate.getCurrentPosition();
         double motorShaftRevolutions = (double) encoderCounts / ARM_ROTATE_ENCODER_RESOLUTION;
         double outputShaftRevolutions = motorShaftRevolutions * ARM_ROTATE_GEAR_RATIO;
         return outputShaftRevolutions * 360 + ARM_STARTING_ANGLE_OFFSET;
     }
 
-    public double getLiftExtension(){
-        return lift.getCurrentPosition();
+    /**
+     * Given a position to go to in inches, convert to encoder values and set the lift position
+     * Change motor direction depending on if it is above or below the desired position
+     * @param targetPositionInches
+     */
+    public void setLiftPositionInches(double targetPositionInches) {
+
+        double outputShaftRevolutions = targetPositionInches / LIFT_TRAVEL_PER_ROTATION_INCHES;
+        double motorShaftRevolutions = outputShaftRevolutions / LIFT_GEAR_RATIO;
+        double targetPosition = motorShaftRevolutions * LIFT_ENCODER_RESOLUTION;
+        if (targetPosition < lift.getCurrentPosition()) lift.setPower(1);
+        else if (targetPosition > lift.getCurrentPosition()) lift.setPower(-1);
+        lift.setTargetPosition((int) targetPosition);
+        /**
+         * Need to write code to set power whose direction is dependent on current position,
+         * preferably a PID type implementation
+         */
+    }
+
+    public double getLiftExtensionInches(){
+        int encoderCounts = lift.getCurrentPosition();
+        double motorShaftRevolutions = (double) encoderCounts / LIFT_ENCODER_RESOLUTION;
+        double outputShaftRevolutions = motorShaftRevolutions * LIFT_GEAR_RATIO;
+        return outputShaftRevolutions * LIFT_TRAVEL_PER_ROTATION_INCHES;
     }
 
     /**
