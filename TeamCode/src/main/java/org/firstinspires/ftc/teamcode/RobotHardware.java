@@ -31,7 +31,6 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.Range;
 
 /*
  * This file works in conjunction with the External Hardware Class sample called: org.firstinspires.ftc.teamcode.MorrisPOVDrive.java
@@ -83,8 +82,7 @@ public class RobotHardware {
 
     // Define Drive constants.  Make them public so they CAN be used by the calling OpMode
     /** Mr. Morris: TO DO: test and update servo speeds. */
-    public static final double MID_SERVO       =  0.5 ;
-    public static final double GRIPPER_INCREMENT = 0.02, GRIPPER_MAX = 1, GRIPPER_MIN = 0 ;  // sets rate to move gripper servo and max and min travel. If you use SRS servo programmer to set limits, this will be 1 and 0. If you need to limit travel in the software, this is where to do it.
+    public static final double GRIPPER_INCREMENT = 0.06, GRIPPER_MAX = 1, GRIPPER_MIN = 0 ;  // sets rate to move gripper servo and max and min travel. If you use SRS servo programmer to set limits, this will be 1 and 0. If you need to limit travel in the software, this is where to do it.
     public static final double WRIST_INCREMENT = 0.02 ; // sets rate to move wrist servo
     public static final double WRIST_MAX_ANGLE  = 300 ; // Adjust this angle if SRS servo programmer has limited servo travel to less than 300
     public static final int ARM_INCREMENT_DEGREES = 5, ARM_ROTATE_MAX = 120, ARM_ROTATE_MIN = -20, // Straight forward defined as 0 degrees
@@ -143,42 +141,15 @@ public class RobotHardware {
         armRotate.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        armRotate.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         // Define and initialize ALL installed servos.
         wrist = myOpMode.hardwareMap.get(Servo.class, "wrist");
         gripper = myOpMode.hardwareMap.get(Servo.class, "gripper");
-        wrist.setPosition(MID_SERVO);
-        gripper.setPosition(MID_SERVO);
+        gripper.setPosition(GRIPPER_MIN);
 
-        /*
-        // Create the vision portal by using a builder.
-        VisionPortal.Builder builder = new VisionPortal.Builder();
+        setArmAngle(90);
 
-        // Set the camera (webcam vs. built-in RC phone camera).
-        if (USE_WEBCAM) {
-            builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
-        } else {
-            builder.setCamera(BuiltinCameraDirection.BACK);
-        }
-
-        // Choose a camera resolution. Not all cameras support all resolutions.
-        builder.setCameraResolution(new Size(640, 480));
-
-        // Enable the RC preview (LiveView).  Set "false" to omit camera monitoring.
-        builder.enableLiveView(true);
-
-        // Set the stream format; MJPEG uses less bandwidth than default YUY2.
-        builder.setStreamFormat(VisionPortal.StreamFormat.MJPEG);
-
-        // Choose whether or not LiveView stops if no processors are enabled.
-        // If set "true", monitor shows solid orange screen if no processors enabled.
-        // If set "false", monitor shows camera view without annotations.
-        builder.setAutoStopLiveView(false);
-
-        // Build the Vision Portal, using the above settings.
-        visionPortal = builder.build();
-
-        myOpMode.telemetry.addData("DS preview on/off", "3 dots, Camera Stream");
-        */
         myOpMode.telemetry.addData(">", "Hardware Initialized");
         myOpMode.telemetry.update();
     }
@@ -211,7 +182,7 @@ public class RobotHardware {
             rightRear /= max;
         }
 
-        // Use existing function to forward wheels on both sides..
+        // with the new scaled values, send power to the motors.
         setDrivePower(leftFront, leftRear, rightFront, rightRear);
     }
 
@@ -250,19 +221,35 @@ public class RobotHardware {
     public int[] getDriveEncoderValues(){
         return new int[]{leftFrontDrive.getCurrentPosition(), leftRearDrive.getCurrentPosition(), rightFrontDrive.getCurrentPosition(), rightRearDrive.getCurrentPosition()};
     }
+
     /**
      * Given an angle to set the arm to, convert to encoder values and set the arm position
      * Change motor direction depending on if it is above or below the desired position
-     *
-     * @param targetAngle angle from -20 to 120
+     * @param targetAngleDegrees angle from -20 to 120
      */
-    public void setArmPosition(double targetAngle) {
-
-        armRotate.setTargetPosition((int) targetAngle);
+    public void setArmAngle(double targetAngleDegrees) {
+        double outputShaftRevolutions = targetAngleDegrees / 360; // TO DO: Account for offset
+        double motorShaftRevolutions = outputShaftRevolutions / ARM_ROTATE_GEAR_RATIO;
+        double targetPosition = motorShaftRevolutions * ARM_ROTATE_ENCODER_RESOLUTION;
+        if (targetPosition < armRotate.getCurrentPosition()) armRotate.setPower(1); // TO DO: maybe should use getArmAngleDegrees() or account for offset
+        else if (targetPosition > armRotate.getCurrentPosition()) armRotate.setPower(-1);
+        armRotate.setTargetPosition((int) targetAngleDegrees);
         /**
          * Need to write code to set power whose direction is dependent on current position,
          * preferably a PID type implementation
          */
+    }
+
+    public void armAngleIncrement(){
+        if (getArmAngleDegrees() < ARM_ROTATE_MAX) {
+            setArmAngle(getArmAngleDegrees() + ARM_INCREMENT_DEGREES);
+        }
+    }
+
+    public void armAngleDecrement(){
+        if (getArmAngleDegrees() > ARM_ROTATE_MIN){
+            setArmAngle((getArmAngleDegrees() + ARM_INCREMENT_DEGREES));
+        }
     }
 
     /**
@@ -281,14 +268,14 @@ public class RobotHardware {
     /**
      * Given a position to go to in inches, convert to encoder values and set the lift position
      * Change motor direction depending on if it is above or below the desired position
-     * @param targetPositionInches
+     * @param targetPositionInches is how high the lift needs to be set to
+     * Need to account for its starting height
      */
     public void setLiftPositionInches(double targetPositionInches) {
-
         double outputShaftRevolutions = targetPositionInches / LIFT_TRAVEL_PER_ROTATION_INCHES;
         double motorShaftRevolutions = outputShaftRevolutions / LIFT_GEAR_RATIO;
         double targetPosition = motorShaftRevolutions * LIFT_ENCODER_RESOLUTION;
-        if (targetPosition < lift.getCurrentPosition()) lift.setPower(1);
+        if (targetPosition < lift.getCurrentPosition()) lift.setPower(1); // TO DO: maybe should use getLiftExtensionInches() or account for offset
         else if (targetPosition > lift.getCurrentPosition()) lift.setPower(-1);
         lift.setTargetPosition((int) targetPosition);
         /**
@@ -307,29 +294,34 @@ public class RobotHardware {
     /**
      * Mr. Morris: TO DO: may want to work in degrees, then convert to range from -0.5 to 0.5, see setWristAngle() function
      * Send the gripper the new position to go to
-     * @param offset distance from center mid point.
+     * @param position value from 0 to 1
      */
-    public void setGripperPosition(double offset) {
-        offset = Range.clip(offset, -0.5, 0.5);
-        gripper.setPosition(MID_SERVO + offset);
+    public void setGripperPosition(double position) {
+        gripper.setPosition(position);
+    }
+
+    public void gripperIncrement(){
+        if (gripper.getPosition() < GRIPPER_MAX) {
+            setGripperPosition(gripper.getPosition() + GRIPPER_INCREMENT);
+        }
+    }
+
+    public void gripperDecrement(){
+        if (gripper.getPosition() > GRIPPER_MIN){
+            setGripperPosition((gripper.getPosition() - GRIPPER_INCREMENT));
+        }
+    }
+
+    public double getGripperPosition(){
+        return gripper.getPosition();
     }
 
     /**
      * Send the wrist to a certain angle in degrees
-     * @param angle is the angle the wrist should go to, in degrees
+     * @param position is a number from 0 to 1
      */
-    public void setWristAngle(double angle){
-        angle = Range.clip(angle / WRIST_MAX_ANGLE, -0.5, 0.5); // convert angle in degrees to a range from -0.5 to 0.5.
-        wrist.setPosition(MID_SERVO + angle);
+    public void setWrist(double position){
+        //write code to set wrist here
     }
-/*
-    // Toggle streaming on/off to save CPU resources
-    public void toggleStreaming(){
-        if (streaming) visionPortal.stopStreaming();
-        else {
-            visionPortal.resumeStreaming();
-        }
-        streaming = !streaming;
-    }
- */
+
 }

@@ -30,7 +30,8 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.util.Range;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 
 /*
@@ -80,15 +81,13 @@ public class MorrisPOVDrive extends LinearOpMode {
         double forward;
         double turn;
         double strafe;
-//        double armRotateTarget = robot.getArmAngle();  // Initialize arm to current position
-//        double liftExtendTarget = robot.getLiftExtension(); // Initialize lift to current position
-        double gripper   = 0;
         double aLastTime = 0, bLastTime = 0, xLastTime = 0, yLastTime = 0, rBLastTime = 0, lBLastTime = 0;
-    //    boolean backButtonPressed = false;
         final double BUTTON_PRESS_DELAY = .075;// seconds, keep track of how long a button has been pressed and allow for a quick press to move a servo a small amount while a long press moves the servo a longer distance.
 
         // initialize all the hardware, using the hardware class. See how clean and simple this is?
         robot.init();
+        ElapsedTime runtime = new ElapsedTime();
+
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData(">", "Robot Ready.  Press Play to start OpMode.");
@@ -96,23 +95,10 @@ public class MorrisPOVDrive extends LinearOpMode {
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
+        runtime.reset();
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-
-//            // Save CPU resources; can resume streaming when needed.
-//            // This uses a method of tracking the state of the button called latching. See https://stemrobotics.cs.pdx.edu/node/7262.html.
-//            // It won't toggle until the button is released. This avoids double-presses.
-//            if (gamepad1.back) {
-//                backButtonPressed = true;
-//            }
-//            else if (backButtonPressed && !gamepad1.back)
-//            {
-//                backButtonPressed = false;
-////                robot.toggleStreaming();
-//            }
-                
-
             // Run wheels in POV mode (note: The joystick goes negative when pushed forward, so negate it)
             // In this mode the Left stick moves the robot fwd and back, the Right stick turns left and right.
             // This way it's also easy to just forward straight, or just turn.
@@ -130,45 +116,35 @@ public class MorrisPOVDrive extends LinearOpMode {
             // Each time around the loop, the servos will move by a small amount.
             // Limit the total offset to half of the full travel range
 
-            // Open gripper when right bumper is pressed if it's not already at max, close gripper when left bumper is pressed if it's not already at min
+            // Close gripper when right bumper is pressed if it's not already at max, open gripper when left bumper is pressed if it's not already at min
             // Keeps track of how long a button is pressed and moves a small amount for a short press and a larger amount for a long press
             if (gamepad1.right_bumper)
-                if (getRuntime() - rBLastTime > BUTTON_PRESS_DELAY)
-                {
-                    if (gripper < RobotHardware.GRIPPER_MAX)
-                        gripper += RobotHardware.GRIPPER_INCREMENT;
-                    rBLastTime = getRuntime();
+                if (runtime.seconds() - rBLastTime > BUTTON_PRESS_DELAY){
+                    robot.gripperIncrement();
+                    rBLastTime = runtime.seconds();
                 }
-            else if (gamepad1.left_bumper)
-                {
-                    if (getRuntime() - lBLastTime > BUTTON_PRESS_DELAY)
-                        if (gripper > RobotHardware.GRIPPER_MIN)
-                            gripper -= RobotHardware.GRIPPER_INCREMENT;
-                    lBLastTime = getRuntime();
+            if (gamepad1.left_bumper)
+                if (runtime.seconds() - lBLastTime > BUTTON_PRESS_DELAY){
+                    robot.gripperDecrement();
+                    lBLastTime = runtime.seconds();
                 }
-            gripper = Range.clip(gripper, -0.5, 0.5);
-
-            // Move servo to new position.  Use org.firstinspires.ftc.teamcode.RobotHardware class
-            robot.setGripperPosition(gripper);
 
             // Use gamepad buttons to rotate arm forward/down (Y) and back/up (A)
             // Use the MOTOR constants defined in org.firstinspires.ftc.teamcode.RobotHardware class.
             /** Mr. Morris: Consider redefining the arm movements to use a joystick with a,b,x,y buttons reserved for preset positions like in FTC season */
 //            if (gamepad1.y)
-//                if (getRuntime() - yLastTime > BUTTON_PRESS_DELAY) {
-//                    if (armRotateTarget < RobotHardware.ARM_ROTATE_MAX)
-//                        armRotateTarget += RobotHardware.ARM_INCREMENT_DEGREES; // rotate arm up when Y is pressed
-//                    yLastTime = getRuntime();
+//                if (runtime.seconds() - yLastTime > BUTTON_PRESS_DELAY) {
+//                    robot.armAngleIncrement();
+//                    yLastTime = runtime.seconds();
 //                }
-//            else if (gamepad1.a)
-//                if (getRuntime() - aLastTime > BUTTON_PRESS_DELAY) {
-//                    if (armRotateTarget > RobotHardware.ARM_ROTATE_MIN)
-//                        armRotateTarget -= RobotHardware.ARM_INCREMENT_DEGREES; // rotate arm down when A is pressed
-//                    aLastTime = getRuntime();
+//            if (gamepad1.a)
+//                if (runtime.seconds() - aLastTime > BUTTON_PRESS_DELAY) {
+//                    robot.armAngleDecrement();
+//                    aLastTime = runtime.seconds();
 //                }
 
-//            // Use gamepad buttons to extend lift (X) and retract lift (B)
-//            // Use the MOTOR constants defined in org.firstinspires.ftc.teamcode.RobotHardware class.
+            // Use gamepad buttons to extend lift (X) and retract lift (B)
+            // Use the MOTOR constants defined in org.firstinspires.ftc.teamcode.RobotHardware class.
 //            if (gamepad1.x && getRuntime() - xLastTime > BUTTON_PRESS_DELAY) {
 //                if (liftExtendTarget < RobotHardware.LIFT_EXTEND_3STAGE_MAX_INCHES)
 //                    liftExtendTarget += RobotHardware.LIFT_EXTEND_INCREMENT_INCHES; // extend when X is pressed
@@ -201,7 +177,9 @@ public class MorrisPOVDrive extends LinearOpMode {
             telemetry.addData("Turn Power",  "%.2f", turn);
 //            telemetry.addData("Arm Rotate Power",  "%.2f", armRotateTarget);
 //            telemetry.addData("Arm Extend Power",  "%.2f", armExtendTarget);
-//            telemetry.addData("Gripper Position",  "Offset = %.2f", gripper);
+            telemetry.addData("Gripper Position",  "%.2f", robot.getGripperPosition());
+            telemetry.addData("Arm Position", "%.2f",robot.getArmAngleDegrees());
+            telemetry.addData("Runtime", "%.2f",runtime.seconds());
             telemetry.update();
 
             idle(); //share processor with other programs - good to include in any loop structure in a linear OpMode
