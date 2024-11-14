@@ -28,6 +28,8 @@ package org.firstinspires.ftc.teamcode;
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static android.os.SystemClock.sleep;
+
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -91,12 +93,6 @@ public class RobotHardware {
             LIFT_EXTEND_INCREMENT_INCHES = 0.50, LIFT_RETRACT_INCREMENT_INCHES = -0.50, LIFT_EXTEND_3STAGE_MAX_INCHES = 732 / 25.4,
             LIFT_RETRACT_MAX_INCHES = 0;
 
-//     Define vision defaults
-//        private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
-//        private boolean streaming = true; // streaming starts off true, gets toggled in toggleStreaming
-//     The variable to store our instance of the vision portal.
-//        private VisionPortal visionPortal;
-
     // Define a constructor that allows the OpMode to pass a reference to itself.
     public RobotHardware(OpMode opmode) {
         myOpMode = opmode;
@@ -147,8 +143,6 @@ public class RobotHardware {
         wrist = myOpMode.hardwareMap.get(Servo.class, "wrist");
         gripper = myOpMode.hardwareMap.get(Servo.class, "gripper");
         gripper.setPosition(GRIPPER_MIN);
-
-        setArmAngle(90);
 
         myOpMode.telemetry.addData(">", "Hardware Initialized");
         myOpMode.telemetry.update();
@@ -224,20 +218,55 @@ public class RobotHardware {
 
     /**
      * Given an angle to set the arm to, convert to encoder values and set the arm position
-     * Change motor direction depending on if it is above or below the desired position
      * @param targetAngleDegrees angle from -20 to 120
+     * This is implementing a PID controller to move the arm to the desired angle.
      */
     public void setArmAngle(double targetAngleDegrees) {
-        double outputShaftRevolutions = targetAngleDegrees / 360; // TO DO: Account for offset
-        double motorShaftRevolutions = outputShaftRevolutions / ARM_ROTATE_GEAR_RATIO;
-        double targetPosition = motorShaftRevolutions * ARM_ROTATE_ENCODER_RESOLUTION;
-        if (targetPosition < armRotate.getCurrentPosition()) armRotate.setPower(1); // TO DO: maybe should use getArmAngleDegrees() or account for offset
-        else if (targetPosition > armRotate.getCurrentPosition()) armRotate.setPower(-1);
-        armRotate.setTargetPosition((int) targetAngleDegrees);
-        /**
-         * Need to write code to set power whose direction is dependent on current position,
-         * preferably a PID type implementation
-         */
+        double tolerance = 5; // Adjust tolerance as needed (in encoder ticks)
+        double Kp = 0.01;
+        double Ki = 0.001;
+        double Kd = 0.005;
+        // Convert target angle to target encoder position
+        int targetPosition = calculateArmEncoderPosition(targetAngleDegrees);
+
+        // Initialize PID variables
+        double error = targetPosition - armRotate.getCurrentPosition();
+        double integralError = 0;
+        double previousError = error;
+
+        // PID loop
+        while (Math.abs(error) > tolerance) {
+            // Calculate PID terms
+            double proportionalTerm = Kp * error;
+            integralError += error;
+            double integralTerm = Ki * integralError;
+            double derivativeTerm = Kd * (error - previousError);
+
+            // Calculate motor power
+            double power = proportionalTerm + integralTerm + derivativeTerm;
+
+            // Limit power to avoid overloading the motor
+            power = Math.max(-1.0, Math.min(1.0, power));
+
+            armRotate.setPower(power);
+
+            // Update error and previous error
+            error = targetPosition - armRotate.getCurrentPosition();
+            previousError = error;
+
+            // Add a delay to avoid overloading the processor
+            sleep(10);
+        }
+
+        // Stop the motor
+        armRotate.setPower(0);
+    }
+
+    // Function to calculate encoder position from target angle
+    private int calculateArmEncoderPosition(double targetAngle) {
+        int ticksPerRevolution = ARM_ROTATE_ENCODER_RESOLUTION * ARM_ROTATE_GEAR_RATIO;
+        double ticksPerDegree = (double) ticksPerRevolution / 360;
+        return (int) (targetAngle * ticksPerDegree);
     }
 
     public void armAngleIncrement(){
