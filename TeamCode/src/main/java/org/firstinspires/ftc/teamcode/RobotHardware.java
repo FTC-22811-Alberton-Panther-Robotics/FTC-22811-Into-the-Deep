@@ -92,11 +92,14 @@ public class RobotHardware {
     public static final double LIFT_ENCODER_RESOLUTION = 28, LIFT_GEAR_RATIO = 20, LIFT_TRAVEL_PER_ROTATION_INCHES = 120 / 25.4,
             LIFT_EXTEND_INCREMENT_INCHES = 0.50, LIFT_RETRACT_INCREMENT_INCHES = -0.50, LIFT_EXTEND_3STAGE_MAX_INCHES = 732 / 25.4,
             LIFT_RETRACT_MAX_INCHES = 0;
+    private int armInitialPosition = 0;
 
     // Define a constructor that allows the OpMode to pass a reference to itself.
     public RobotHardware(OpMode opmode) {
         myOpMode = opmode;
     }
+
+    public double armTargetAngleDegrees = 0;
 
     /**
      * Initialize all the robot's hardware.
@@ -138,6 +141,7 @@ public class RobotHardware {
         lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         armRotate.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        armInitialPosition = armRotate.getCurrentPosition();
 
         // Define and initialize ALL installed servos.
         wrist = myOpMode.hardwareMap.get(Servo.class, "wrist");
@@ -222,20 +226,22 @@ public class RobotHardware {
      * This is implementing a PID controller to move the arm to the desired angle.
      */
     public void setArmAngle(double targetAngleDegrees) {
+        armTargetAngleDegrees = targetAngleDegrees;
         double tolerance = 5; // Adjust tolerance as needed (in encoder ticks)
         double Kp = 0.01;
         double Ki = 0.001;
         double Kd = 0.005;
         // Convert target angle to target encoder position
-        int targetPosition = calculateArmEncoderPosition(targetAngleDegrees);
+        int targetPosition = calculateArmEncoderPosition(targetAngleDegrees + ARM_STARTING_ANGLE_OFFSET); // If using the armInitialPosition instead of ARM_STARTING_ANGLE_OFFSET, use targetPosition = calculateArmEncoderPosition(targetAngleDegrees);
 
         // Initialize PID variables
-        double error = targetPosition - armRotate.getCurrentPosition();
         double integralError = 0;
+        double error = targetPosition; // If using the armInitialPosition instead of ARM_STARTING_ANGLE_OFFSET, use double error = targetPosition - armInitialPosition;
         double previousError = error;
 
         // PID loop
         while (Math.abs(error) > tolerance) {
+            error = targetPosition - armRotate.getCurrentPosition(); // If using the armInitialPosition instead of ARM_STARTING_ANGLE_OFFSET, use error = (targetPosition - armInitialPosition) - (armRotate.getCurrentPosition() - armInitialPosition);
             // Calculate PID terms
             double proportionalTerm = Kp * error;
             integralError += error;
@@ -263,21 +269,28 @@ public class RobotHardware {
     }
 
     // Function to calculate encoder position from target angle
-    private int calculateArmEncoderPosition(double targetAngle) {
+    private int calculateArmEncoderPosition(double armAngle) {
         int ticksPerRevolution = ARM_ROTATE_ENCODER_RESOLUTION * ARM_ROTATE_GEAR_RATIO;
         double ticksPerDegree = (double) ticksPerRevolution / 360;
-        return (int) (targetAngle * ticksPerDegree);
+        return (int) (armAngle * ticksPerDegree);
+    }
+
+    // Function to calculate arm angle from encoder position
+    private double calculateAngleFromEncoderPosition(int encoderPosition) {
+        int ticksPerRevolution = ARM_ROTATE_ENCODER_RESOLUTION * ARM_ROTATE_GEAR_RATIO;
+        double degreesPerTick = 360.0 / ticksPerRevolution;
+        return encoderPosition * degreesPerTick;
     }
 
     public void armAngleIncrement(){
-        if (getArmAngleDegrees() < ARM_ROTATE_MAX) {
-            setArmAngle(getArmAngleDegrees() + ARM_INCREMENT_DEGREES);
+        if (getArmAngleRelativeToZero() < ARM_ROTATE_MAX) {
+            setArmAngle(getArmAngleRelativeToZero() + ARM_INCREMENT_DEGREES);
         }
     }
 
     public void armAngleDecrement(){
-        if (getArmAngleDegrees() > ARM_ROTATE_MIN){
-            setArmAngle((getArmAngleDegrees() + ARM_INCREMENT_DEGREES));
+        if (getArmAngleRelativeToZero() > ARM_ROTATE_MIN){
+            setArmAngle((getArmAngleRelativeToZero() + ARM_INCREMENT_DEGREES));
         }
     }
 
@@ -287,11 +300,22 @@ public class RobotHardware {
      *                    i.e. if starting location is -45 degrees, initialize and offset it at program start to account for this.
      *                    Add telemetry statement to test and adjust this.
      */
-    public double getArmAngleDegrees(){
-        int encoderCounts = armRotate.getCurrentPosition();
-        double motorShaftRevolutions = (double) encoderCounts / ARM_ROTATE_ENCODER_RESOLUTION;
-        double outputShaftRevolutions = motorShaftRevolutions * ARM_ROTATE_GEAR_RATIO;
-        return outputShaftRevolutions * 360 + ARM_STARTING_ANGLE_OFFSET;
+    public double getArmAngleRelativeToZero(){
+        int encoderCounts = armRotate.getCurrentPosition(); // If using the armInitialPosition instead of ARM_STARTING_ANGLE_OFFSET, use int encoderCounts = armRotate.getCurrentPosition() - armInitialPosition;
+        double angleRelativeToZero = calculateAngleFromEncoderPosition(encoderCounts) - 120;
+
+        // Ensure the angle is within the desired range (e.g., 0 to 360 degrees)
+        angleRelativeToZero = (angleRelativeToZero + 360) % 360;
+
+        return angleRelativeToZero;
+    }
+
+    public double getArmAngleAbsolute(){
+        return calculateAngleFromEncoderPosition(armRotate.getCurrentPosition());
+    }
+
+    public double getArmEncoderCounts(){
+        return armRotate.getCurrentPosition();
     }
 
     /**

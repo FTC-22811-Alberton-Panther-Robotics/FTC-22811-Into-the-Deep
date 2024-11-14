@@ -30,7 +30,6 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
@@ -118,30 +117,26 @@ public class MorrisPOVDrive extends LinearOpMode {
 
             // Close gripper when right bumper is pressed if it's not already at max, open gripper when left bumper is pressed if it's not already at min
             // Keeps track of how long a button is pressed and moves a small amount for a short press and a larger amount for a long press
-            if (gamepad1.right_bumper)
-                if (runtime.seconds() - rBLastTime > BUTTON_PRESS_DELAY){
-                    robot.gripperIncrement();
-                    rBLastTime = runtime.seconds();
-                }
-            if (gamepad1.left_bumper)
-                if (runtime.seconds() - lBLastTime > BUTTON_PRESS_DELAY){
-                    robot.gripperDecrement();
-                    lBLastTime = runtime.seconds();
-                }
+            if (gamepad1.right_bumper && runtime.seconds() - rBLastTime > BUTTON_PRESS_DELAY){
+                robot.gripperIncrement();
+                rBLastTime = runtime.seconds();
+            }
+            if (gamepad1.left_bumper && runtime.seconds() - lBLastTime > BUTTON_PRESS_DELAY){
+                robot.gripperDecrement();
+                lBLastTime = runtime.seconds();
+            }
 
             // Use gamepad buttons to rotate arm forward/down (Y) and back/up (A)
             // Use the MOTOR constants defined in org.firstinspires.ftc.teamcode.RobotHardware class.
             /** Mr. Morris: Consider redefining the arm movements to use a joystick with a,b,x,y buttons reserved for preset positions like in FTC season */
-//            if (gamepad1.y)
-//                if (runtime.seconds() - yLastTime > BUTTON_PRESS_DELAY) {
-//                    robot.armAngleIncrement();
-//                    yLastTime = runtime.seconds();
-//                }
-//            if (gamepad1.a)
-//                if (runtime.seconds() - aLastTime > BUTTON_PRESS_DELAY) {
-//                    robot.armAngleDecrement();
-//                    aLastTime = runtime.seconds();
-//                }
+            if (gamepad1.y && runtime.seconds() - yLastTime > BUTTON_PRESS_DELAY) {
+                robot.armAngleIncrement();
+                yLastTime = runtime.seconds();
+            }
+            if (gamepad1.a && runtime.seconds() - aLastTime > BUTTON_PRESS_DELAY) {
+                robot.armAngleDecrement();
+                aLastTime = runtime.seconds();
+            }
 
             // Use gamepad buttons to extend lift (X) and retract lift (B)
             // Use the MOTOR constants defined in org.firstinspires.ftc.teamcode.RobotHardware class.
@@ -175,10 +170,12 @@ public class MorrisPOVDrive extends LinearOpMode {
 
             telemetry.addData("Drive Power", "%.2f", forward);
             telemetry.addData("Turn Power",  "%.2f", turn);
-//            telemetry.addData("Arm Rotate Power",  "%.2f", armRotateTarget);
 //            telemetry.addData("Arm Extend Power",  "%.2f", armExtendTarget);
             telemetry.addData("Gripper Position",  "%.2f", robot.getGripperPosition());
-            telemetry.addData("Arm Position", "%.2f",robot.getArmAngleDegrees());
+            telemetry.addData("Arm Target Angle Degrees",  "%.2f", robot.armTargetAngleDegrees);
+            telemetry.addData("Arm Angle Relative to Zero", "%.2f",robot.getArmAngleRelativeToZero());
+            telemetry.addData("Arm Angle Absolute", "%.2f",robot.getArmAngleAbsolute());
+            telemetry.addData("Arm Position", "%.2f",robot.getArmEncoderCounts());
             telemetry.addData("Runtime", "%.2f",runtime.seconds());
             telemetry.update();
 
