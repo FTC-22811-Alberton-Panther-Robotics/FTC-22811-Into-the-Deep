@@ -73,15 +73,16 @@ public class MorrisPOVDrive extends LinearOpMode {
 
     // Create a org.firstinspires.ftc.teamcode.RobotHardware object to be used to access robot hardware.
     // Prefix any hardware functions with "robot." to access this class.
-    RobotHardware robot       = new RobotHardware(this);
+    RobotHardware robot       = new RobotHardware(this, telemetry);
 
     @Override
     public void runOpMode() {
         double forward;
         double turn;
         double strafe;
-        double aLastTime = 0, bLastTime = 0, xLastTime = 0, yLastTime = 0, rBLastTime = 0, lBLastTime = 0;
-        final double BUTTON_PRESS_DELAY = .075;// seconds, keep track of how long a button has been pressed and allow for a quick press to move a servo a small amount while a long press moves the servo a longer distance.
+        double aLastTime = 0, bLastTime = 0, xLastTime = 0, yLastTime = 0, rBLastTime = 0, lBLastTime = 0, dPadUpLastTime = 0, dpadDownLastTime = 0;
+        boolean aButtonPressed = false, bButtonPressed = false, xButtonPressed = false, yButtonPressed = false;
+        final double BUTTON_PRESS_DELAY = .05;// seconds, keep track of how long a button has been pressed and allow for a quick press to move a servo a small amount while a long press moves the servo a longer distance.
 
         // initialize all the hardware, using the hardware class. See how clean and simple this is?
         robot.init();
@@ -98,6 +99,8 @@ public class MorrisPOVDrive extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            robot.opModeActive = true;
+
             // Run wheels in POV mode (note: The joystick goes negative when pushed forward, so negate it)
             // In this mode the Left stick moves the robot fwd and back, the Right stick turns left and right.
             // This way it's also easy to just forward straight, or just turn.
@@ -126,34 +129,48 @@ public class MorrisPOVDrive extends LinearOpMode {
                 lBLastTime = runtime.seconds();
             }
 
-            // Use gamepad buttons to rotate arm forward/down (Y) and back/up (A)
+            if (gamepad1.y){
+                if (!yButtonPressed){
+                    robot.setArmAngle(90);
+                    yButtonPressed = true;
+                }
+            } else yButtonPressed = false;
+
+            if (gamepad1.a){
+                if (!aButtonPressed){
+                    robot.setArmAngle(0);
+                    aButtonPressed = true;
+                }
+            } else aButtonPressed = false;
+
+            // Use gamepad buttons to rotate arm forward/down (dpad down) and back/up (dpad up)
             // Use the MOTOR constants defined in org.firstinspires.ftc.teamcode.RobotHardware class.
             /** Mr. Morris: Consider redefining the arm movements to use a joystick with a,b,x,y buttons reserved for preset positions like in FTC season */
-            if (gamepad1.y && runtime.seconds() - yLastTime > BUTTON_PRESS_DELAY) {
+            if (gamepad1.dpad_up && runtime.seconds() - dPadUpLastTime > BUTTON_PRESS_DELAY) {
                 robot.armAngleIncrement();
-                yLastTime = runtime.seconds();
+                dPadUpLastTime = runtime.seconds();
             }
-            if (gamepad1.a && runtime.seconds() - aLastTime > BUTTON_PRESS_DELAY) {
+            if (gamepad1.dpad_down && runtime.seconds() - dpadDownLastTime > BUTTON_PRESS_DELAY) {
                 robot.armAngleDecrement();
-                aLastTime = runtime.seconds();
+                dpadDownLastTime = runtime.seconds();
             }
 
             // Use gamepad buttons to extend lift (X) and retract lift (B)
             // Use the MOTOR constants defined in org.firstinspires.ftc.teamcode.RobotHardware class.
 //            if (gamepad1.x && getRuntime() - xLastTime > BUTTON_PRESS_DELAY) {
-//                if (liftExtendTarget < RobotHardware.LIFT_EXTEND_3STAGE_MAX_INCHES)
-//                    liftExtendTarget += RobotHardware.LIFT_EXTEND_INCREMENT_INCHES; // extend when X is pressed
+//                if (liftExtendTargetInches < RobotHardware.LIFT_EXTEND_3STAGE_MAX_INCHES)
+//                    liftExtendTargetInches += RobotHardware.LIFT_EXTEND_INCREMENT_INCHES; // extend when X is pressed
 //                xLastTime = getRuntime();
 //                }
 //            else if (gamepad1.b && getRuntime() - bLastTime > BUTTON_PRESS_DELAY) {
-//                if (liftExtendTarget > RobotHardware.LIFT_RETRACT_MAX_INCHES) {
-//                    liftExtendTarget -= RobotHardware.LIFT_RETRACT_INCREMENT_INCHES; // retract when B is pressed
+//                if (liftExtendTargetInches > RobotHardware.LIFT_RETRACT_MAX_INCHES) {
+//                    liftExtendTargetInches -= RobotHardware.LIFT_RETRACT_INCREMENT_INCHES; // retract when B is pressed
 //                }
 //                bLastTime = getRuntime();
 //            }
-//            else liftExtendTarget = 0; // don't move if x and b aren't pressed.
+//            else liftExtendTargetInches = 0; // don't move if x and b aren't pressed.
 ////            robot.setArmPosition(armRotateTarget); //send rotation values to robot
-//            robot.setLiftPositionInches(liftExtendTarget); // send extension values to robot
+//            robot.setLiftPositionInches(liftExtendTargetInches); // send extension values to robot
 
             /** This code needs updated. We probably don't want the wrist matching the arm angle all the time since it needs to reach back to the lift */
             // Move wrist so that it moves when arm rotates to keep gripper parallel to floor
@@ -181,5 +198,6 @@ public class MorrisPOVDrive extends LinearOpMode {
 
             idle(); //share processor with other programs - good to include in any loop structure in a linear OpMode
         }
+        robot.opModeActive = false;
     }
 }

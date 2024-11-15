@@ -54,7 +54,7 @@ public class MorrisIterative extends OpMode
 
     // Create a org.firstinspires.ftc.teamcode.RobotHardware object to be used to access robot hardware.
     // Prefix any hardware functions with "robot." to access this class.
-    RobotHardware robot       = new RobotHardware(this);
+    RobotHardware robot       = new RobotHardware(this, telemetry);
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
