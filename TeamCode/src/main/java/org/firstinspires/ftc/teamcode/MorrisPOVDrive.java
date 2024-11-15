@@ -54,17 +54,18 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
  * Mr. Morris:          TO DO:  1) Test, then revise code for arm, lift, gripper, and wrist
- *                              2) Write code for presets for arm rotation, lift, etc. An automated hang sequence is especially needed.
+ *                              2) Fix initial offset code for arm
+ *                              3) Write code and presets for lift. An automated hang sequence is especially needed.
  *                              3) Once second lift motor is installed - Implement code in RobotHardware
  *                              4) Change code when active intake and color sensor is implemented
- *                              5) Revise code for vision, commented out for now.
- *                              6) Migrate code to Iterative program so that end game behavior can be set - i.e. the hang mechanism can stay engaged for several seconds after stop.
  *                              7) Consider implementing Driver-centric toggle
- *                              8) Set up code for hardware limit switches for arm and lift
+ *                              8) Set up code for hardware limit switches for arm and lift - Edit: this may not be necessary with the over current sensing
  *
  *     COMPLETE, NEEDS TESTING: 1) Finish updating to match RobotHardware file definitions, then delete or comment out @Disabled
- *                              3) Use math to keep wrist turned so that gripper is level with ground (rotate relative to arm rotation)
+ *                              3) Use math to keep wrist turned so that gripper is level with ground (rotate relative to arm rotation) - Edit: this is no longer necessary and is broken
  *                              4) Add elapsed time tracking and implement better button press delay method. See <a href="https://stemrobotics.cs.pdx.edu/node/7262.html">...</a>
+ *                              5) Implemented a state machine method of tracking the arm movement with over current detection to prevent the arm from doing damage to itself. Check it out in the RobotHardware class.
+ *                              6) Wrote code for arm presets and incrementation. Needs refinement.
  */
 
 @TeleOp(name="Morris POV Drive", group="Test Code")
@@ -81,8 +82,8 @@ public class MorrisPOVDrive extends LinearOpMode {
         double turn;
         double strafe;
         double aLastTime = 0, bLastTime = 0, xLastTime = 0, yLastTime = 0, rBLastTime = 0, lBLastTime = 0, dPadUpLastTime = 0, dpadDownLastTime = 0;
-        boolean aButtonPressed = false, bButtonPressed = false, xButtonPressed = false, yButtonPressed = false;
-        final double BUTTON_PRESS_DELAY = .05;// seconds, keep track of how long a button has been pressed and allow for a quick press to move a servo a small amount while a long press moves the servo a longer distance.
+        boolean aButtonPressed = false, bButtonPressed = false, xButtonPressed = false, yButtonPressed = false, dPadUpPressed = false, dPadDownPressed = false;
+        final double BUTTON_PRESS_DELAY = .075;// seconds, keep track of how long a button has been pressed and allow for a quick press to move a servo a small amount while a long press moves the servo a longer distance.
 
         // initialize all the hardware, using the hardware class. See how clean and simple this is?
         robot.init();
@@ -100,10 +101,11 @@ public class MorrisPOVDrive extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             robot.opModeActive = true;
+            robot.updateArmState(); // update arm state machine to track arm position. By calling it here it gets updated everytime the opMode loops but otherwise works in the background while motors move.
 
-            // Run wheels in POV mode (note: The joystick goes negative when pushed forward, so negate it)
-            // In this mode the Left stick moves the robot fwd and back, the Right stick turns left and right.
-            // This way it's also easy to just forward straight, or just turn.
+            // Run wheels in strafer mode (note: The joystick goes negative when pushed forward, so negate it)
+            // In this mode the Left stick moves the robot fwd and back and left and right, the Right stick turns left and right.
+            // This way it's easy to drive diagonally and have good control of heading.
 
             ////Mr. Morris: Alternatively we could use right trigger for forward, left trigger for reverse, left_stick_x for turning
             forward = -gamepad1.left_stick_y;
@@ -131,29 +133,53 @@ public class MorrisPOVDrive extends LinearOpMode {
 
             if (gamepad1.y){
                 if (!yButtonPressed){
-                    robot.setArmAngle(90);
+                    robot.setArmAngle(130);
                     yButtonPressed = true;
                 }
             } else yButtonPressed = false;
 
+            if (gamepad1.x){
+                if (!xButtonPressed){
+                    robot.setArmAngle(15);
+                    xButtonPressed = true;
+                }
+            } else xButtonPressed = false;
+
+
+            // Use gamepad buttons to rotate arm forward/down (dpad down) and back/up (dpad up)
+            // Use the MOTOR constants defined in org.firstinspires.ftc.teamcode.RobotHardware class.
+            /**
+             * Mr. Morris: TO DO: Consider redefining the arm movements to use a joystick or triggers so that the analog variable power can be used to fine tune control,
+             *              then use a,b,x,y buttons for preset positions like in last year's FTC season
+             */
+            if (gamepad1.b){
+                if (!bButtonPressed){
+                    robot.armAngleIncrement();
+                    bButtonPressed = true;
+                }
+            } else bButtonPressed = false;
+
             if (gamepad1.a){
                 if (!aButtonPressed){
-                    robot.setArmAngle(0);
+                    robot.armAngleDecrement();
                     aButtonPressed = true;
                 }
             } else aButtonPressed = false;
 
-            // Use gamepad buttons to rotate arm forward/down (dpad down) and back/up (dpad up)
-            // Use the MOTOR constants defined in org.firstinspires.ftc.teamcode.RobotHardware class.
-            /** Mr. Morris: Consider redefining the arm movements to use a joystick with a,b,x,y buttons reserved for preset positions like in FTC season */
-            if (gamepad1.dpad_up && runtime.seconds() - dPadUpLastTime > BUTTON_PRESS_DELAY) {
-                robot.armAngleIncrement();
-                dPadUpLastTime = runtime.seconds();
-            }
-            if (gamepad1.dpad_down && runtime.seconds() - dpadDownLastTime > BUTTON_PRESS_DELAY) {
-                robot.armAngleDecrement();
-                dpadDownLastTime = runtime.seconds();
-            }
+//            if (gamepad1.dpad_up) {
+//                if (!dPadUpPressed) {
+//                    robot.pIDIncrement += 1;
+//                    dPadUpPressed = true;
+//                }
+//            } else dPadUpPressed = false;
+//
+//            if (gamepad1.dpad_down) {
+//                if (!dPadDownPressed) {
+//                    robot.pIDIncrement -= 1;
+//                    dPadDownPressed = true;
+//                }
+//            } else dPadDownPressed = false;
+
 
             // Use gamepad buttons to extend lift (X) and retract lift (B)
             // Use the MOTOR constants defined in org.firstinspires.ftc.teamcode.RobotHardware class.
@@ -189,10 +215,13 @@ public class MorrisPOVDrive extends LinearOpMode {
             telemetry.addData("Turn Power",  "%.2f", turn);
 //            telemetry.addData("Arm Extend Power",  "%.2f", armExtendTarget);
             telemetry.addData("Gripper Position",  "%.2f", robot.getGripperPosition());
-            telemetry.addData("Arm Target Angle Degrees",  "%.2f", robot.armTargetAngleDegrees);
             telemetry.addData("Arm Angle Relative to Zero", "%.2f",robot.getArmAngleRelativeToZero());
             telemetry.addData("Arm Angle Absolute", "%.2f",robot.getArmAngleAbsolute());
+            telemetry.addData("Arm Target Angle", "%.2f",robot.getArmTargetAngle());
             telemetry.addData("Arm Position", "%.2f",robot.getArmEncoderCounts());
+            telemetry.addData("Arm Target Position", "%.2f",robot.getArmTargetPosition());
+            telemetry.addData("Arm State", robot.getArmState());
+            telemetry.addData("Arm Current (Amps)", robot.getArmCurrentAmps());
             telemetry.addData("Runtime", "%.2f",runtime.seconds());
             telemetry.update();
 
