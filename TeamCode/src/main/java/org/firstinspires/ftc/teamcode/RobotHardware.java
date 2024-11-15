@@ -273,12 +273,12 @@ public class RobotHardware {
     /**
      * Get the encoder information for the arm rotation motor and convert it to degrees.
      * Mr. Morris: TO DO: Might need to initialize arm angle on startup and/or adjust for starting/resting position.
-     *                    i.e. if starting location is -45 degrees, initialize and offset it at program start to account for this.
+     *                    i.e. if starting location is 160 degrees, initialize and offset it at program start to account for this.
      *                    Add telemetry statement to test and adjust this.
      */
     public double getArmAngleRelativeToZero(){
         int encoderCounts = arm.getCurrentPosition();
-        double angleRelativeToZero = calculateAngleFromEncoderValue(encoderCounts) - ARM_STARTING_ANGLE_OFFSET;
+        double angleRelativeToZero = calculateAngleFromEncoderValue(encoderCounts) + ARM_STARTING_ANGLE_OFFSET;
         return angleRelativeToZero;
     }
 
@@ -424,7 +424,7 @@ public class RobotHardware {
 
     // Public method that Opmodes can call to set the target position for the state machine
     public void setArmAngle(double targetAngle){
-            this.targetPosition = (int) calculateArmEncoderValue(targetAngle);
+            this.targetPosition = (int) calculateArmEncoderValue(targetAngle - ARM_STARTING_ANGLE_OFFSET);
     }
 
     // Public method that Opmodes can call to get what state the arm is in
