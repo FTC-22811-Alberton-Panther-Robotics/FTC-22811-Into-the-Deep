@@ -87,7 +87,6 @@ public class CompetitionTeleop extends LinearOpMode {
         double aLastTime = 0, bLastTime = 0, xLastTime = 0, yLastTime = 0, rBLastTime = 0, lBLastTime = 0, dPadUpLastTime = 0, dpadDownLastTime = 0, rightTriggerLastTime = 0, leftTriggerLastTime = 0;
         boolean aButtonPressed = false, bButtonPressed = false, xButtonPressed = false, yButtonPressed = false, dPadUpPressed = false, dPadDownPressed = false, dPadLeftPressed = false, dPadRightPressed = false,
                 rightTriggerPressed = false, leftTriggerPressed = false, backButtonPressed = false, startButtonPressed = false;
-        final int ARM_MIN_ANGLE = 10, ARM_MAX_ANGLE = 130;
         final double BUTTON_PRESS_DELAY = .075;// seconds, keep track of how long a button has been pressed and allow for a quick press to move a servo a small amount while a long press moves the servo a longer distance.
 
         // initialize all the hardware, using the hardware class. See how clean and simple this is?
@@ -136,27 +135,25 @@ public class CompetitionTeleop extends LinearOpMode {
                 robot.gripperDecrement();
                 lBLastTime = runtime.seconds();
             }
-
+            // Use gamepad X and Y buttons to cycle through lift height presets
+            // Go to next higher lift height preset
             if (gamepad1.y){
-                if (!yButtonPressed){
-                    robot.setArmAngle(ARM_MAX_ANGLE);
+                if (!yButtonPressed && robot.armPositionIndex < robot.ARM_ANGLES.length - 1){
+                    robot.armPositionIndex = robot.armPositionIndex + 1;
+                    robot.setArmAngle(robot.ARM_ANGLES[robot.armPositionIndex]);
                     yButtonPressed = true;
                 }
             } else yButtonPressed = false;
-
-            if (gamepad1.x){
-                if (!xButtonPressed){
-                    robot.setArmAngle(ARM_MIN_ANGLE);
+            // Go to next lower lift height preset
+            if (gamepad1.x) {
+                if (!xButtonPressed && robot.armPositionIndex > 0) {
+                    robot.armPositionIndex = robot.armPositionIndex - 1;
+                    robot.setArmAngle(robot.ARM_ANGLES[robot.armPositionIndex]);
                     xButtonPressed = true;
                 }
-            } else xButtonPressed = false;
-
+            } else dPadLeftPressed = false;
 
             // Use gamepad buttons to rotate arm forward/down (dpad down) and back/up (dpad up)
-            /**
-             * Mr. Morris: TO DO: Consider redefining the arm movements to use a joystick or triggers so that the analog variable power can be used to fine tune control,
-             *              then use a,b,x,y buttons for preset positions like in last year's FTC season
-             */
             if (gamepad1.b){
                 if (!bButtonPressed){
                     robot.armAngleIncrement();
@@ -184,9 +181,9 @@ public class CompetitionTeleop extends LinearOpMode {
             // Use gamepad Dpad left and right buttons to cycle through lift height presets
             // Go to next higher lift height preset
             if (gamepad1.dpad_right){
-                if (!dPadRightPressed && robot.liftPositionIndex < robot.liftPositions.length - 1){
-                    robot.liftPositionIndex = robot.liftPositionIndex + 1; // cycle through lift height presets
-                    robot.setLiftPosition(robot.liftPositions[robot.liftPositionIndex]);
+                if (!dPadRightPressed && robot.liftPositionIndex < robot.LIFT_POSITIONS.length - 1){
+                    robot.liftPositionIndex = robot.liftPositionIndex + 1;
+                    robot.setLiftPositionInches(robot.LIFT_POSITIONS[robot.liftPositionIndex]);
                     dPadRightPressed = true;
                 }
             } else dPadRightPressed = false;
@@ -194,7 +191,7 @@ public class CompetitionTeleop extends LinearOpMode {
             if (gamepad1.dpad_left) {
                 if (!dPadLeftPressed && robot.liftPositionIndex > 0) {
                     robot.liftPositionIndex = robot.liftPositionIndex - 1;
-                    robot.setLiftPosition(robot.liftPositions[robot.liftPositionIndex]);
+                    robot.setLiftPositionInches(robot.LIFT_POSITIONS[robot.liftPositionIndex]);
                     dPadLeftPressed = true;
                 }
             } else dPadLeftPressed = false;
@@ -229,6 +226,7 @@ public class CompetitionTeleop extends LinearOpMode {
             if (gamepad1.start){
                 if (!startButtonPressed){
                     robot.hangRoutine();
+                    robot.liftStateTimer.reset();
                     startButtonPressed = true;
                 }
             }else {

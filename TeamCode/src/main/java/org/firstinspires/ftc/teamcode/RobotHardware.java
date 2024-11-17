@@ -28,8 +28,6 @@ package org.firstinspires.ftc.teamcode;
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static android.os.SystemClock.sleep;
-
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -60,10 +58,17 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
 public class RobotHardware {
 
-
-
     /* Declare OpMode members. */
     private OpMode myOpMode = null;   // gain access to methods in the calling OpMode.
+    private Telemetry telemetry;
+    // Define a constructor that allows the OpMode to pass a reference to itself.
+    public RobotHardware(OpMode opmode, Telemetry telemetry) {
+        this.telemetry = telemetry;
+        myOpMode = opmode;
+    }
+    // This is how the opMode tells the RobotHardware class when it is active, if there are any loops in the hardware
+    // class they should check this to avoid getting stuck in a loop when the stop button is hit
+    public static boolean opModeActive = false;
 
     // Define Motor and Servo objects  (Make them private so they can't be accessed externally)
     private DcMotor leftFrontDrive   = null;
@@ -71,63 +76,64 @@ public class RobotHardware {
     private DcMotor rightFrontDrive  = null;
     private DcMotor rightRearDrive  = null;
     private DcMotor arm = null;
-    private DcMotor liftLeft = null;
-    private DcMotor liftRight = null;
+    private DcMotor leftLift = null;
+    private DcMotor rightLift = null;
     private DcMotorEx armEx = null;
-    private DcMotorEx liftLeftEx = null;
-    private DcMotorEx liftRightEx = null;
+    private DcMotorEx leftLiftEx = null;
+    private DcMotorEx rightLiftEx = null;
     private Servo   wrist = null;
     private Servo   gripper = null;
-    private Telemetry telemetry;
 
+    // General Constants
+    private static final double     MAX_CURRENT_AMPS        = 6;
+
+    // Drivetrain Constants
     // Calculate the COUNTS_PER_INCH for your specific drive train.
     // Go to your motor vendor website to determine your motor's COUNTS_PER_MOTOR_REV
     // For external drive gearing, set DRIVE_GEAR_REDUCTION as needed.
     // For example, use a value of 2.0 for a 12-tooth spur gear driving a 24-tooth spur gear.
     // This is gearing DOWN for less speed and more torque.
     // For gearing UP, use a gear ratio less than 1.0. Note this will affect the direction of wheel rotation.
-    static final double     COUNTS_PER_MOTOR_REVOL    = 537.7 ;    // GoBilda 312rpm motor has this encoder resolution
-    static final double     DRIVE_GEAR_REDUCTION    = 1 ;     // No Gear Reduction.
-    static final double     WHEEL_DIAMETER_INCHES   = 96 * 25.4 ;     // 96mm converted to inches. For figuring circumference
-    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REVOL * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
-    static final double     MAX_CURRENT_AMPS        = 6;
+    private static final double     COUNTS_PER_MOTOR_REVOL    = 537.7 ;    // GoBilda 312rpm motor has this encoder resolution
+    private static final double     DRIVE_GEAR_REDUCTION    = 1 ;     // No Gear Reduction.
+    private static final double     WHEEL_DIAMETER_INCHES   = 96 * 25.4 ;     // 96mm converted to inches. For figuring circumference
+    private static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REVOL * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
 
-    // Define Drive constants.  Make them public so they CAN be used by the calling OpMode
-    /** Mr. Morris: TO DO: test and update servo speeds. */
-    public static final double GRIPPER_INCREMENT = 0.06, GRIPPER_MAX = 1, GRIPPER_MIN = 0 ;  // sets rate to move gripper servo and max and min travel. If you use SRS servo programmer to set limits, this will be 1 and 0. If you need to limit travel in the software, this is where to do it.
-    public static final double WRIST_INCREMENT = 0.02 ; // sets rate to move wrist servo
-    public static final double WRIST_MAX_ANGLE  = 300 ; // Adjust this angle if SRS servo programmer has limited servo travel to less than 300
-    public static final int ARM_INCREMENT_DEGREES = 10, ARM_ROTATE_MAX = 160, ARM_ROTATE_MIN = -20, // Straight forward defined as 0 degrees
-                            ARM_ROTATE_ENCODER_RESOLUTION = 28, ARM_ROTATE_GEAR_RATIO = 60, ARM_STARTING_ANGLE_OFFSET = 160;
-    private static final int ARM_STOW_POSITION = ARM_STARTING_ANGLE_OFFSET;
+    // Gripper and Wrist Constants
+    private static final double GRIPPER_INCREMENT = 0.06, GRIPPER_MAX = 1, GRIPPER_MIN = 0 ;  // sets rate to move gripper servo and max and min travel. If you use SRS servo programmer to set limits, this will be 1 and 0. If you need to limit travel in the software, this is where to do it.
+    private static final double WRIST_INCREMENT = 0.02 ; // sets rate to move wrist servo
+    private static final double WRIST_MAX_ANGLE  = 300 ; // Adjust this angle if SRS servo programmer has limited servo travel to less than 300
+
+    // Arm Constants
     private static final long ARM_POSITION_TIMEOUT = 3000;
-    private static final long LIFT_POSITION_TIMEOUT = 3000;
-    public static final int LIFT_ENCODER_RESOLUTION = 28, LIFT_GEAR_RATIO = 20;
-    public static final double LIFT_TRAVEL_PER_ROTATION_INCHES = 120 / 25.4, LIFT_EXTEND_INCREMENT_INCHES = 0.50, LIFT_RETRACT_INCREMENT_INCHES = -0.50;
-    private static final double LIFT_FULLY_RETRACTED = 0, LOW_TO_HIGH_RUNG = 16, LOW_RUNG = 20, LOW_BASKET = 25.75, HIGH_BASKET = 43, LIFT_3_STAGE_EXTENDED = 28.8;
-    public final double[] liftPositions = {LIFT_FULLY_RETRACTED, LOW_RUNG, LOW_BASKET, HIGH_BASKET, LIFT_3_STAGE_EXTENDED};
-    public int liftPositionIndex = 0;
-    public static boolean opModeActive = false;
-    private static int armTargetPosition = 0;
-    public int liftTargetPosition = 0;
-    private int leftDistanceToTarget =0;
-    private int rightDistanceToTarget =0;
-    ElapsedTime armStateTimer = new ElapsedTime();
-    ElapsedTime liftStateTimer = new ElapsedTime();
-
-    // Define a constructor that allows the OpMode to pass a reference to itself.
-    public RobotHardware(OpMode opmode, Telemetry telemetry) {
-        this.telemetry = telemetry;
-        myOpMode = opmode;
-    }
+    private static final int ARM_INCREMENT_DEGREES = 10, ARM_ROTATE_MAX = 160, ARM_ROTATE_MIN = -20, ARM_ROTATE_ENCODER_RESOLUTION = 28, ARM_ROTATE_GEAR_RATIO = 60, // Straight forward defined as 0 degrees
+            ARM_STARTING_ANGLE_OFFSET = ARM_ROTATE_MAX, ARM_STOW = ARM_STARTING_ANGLE_OFFSET, ARM_INTAKE = 0, CHAMBER_SCORE = 70, ARM_OUTTAKE = 130;
+    public final double[] ARM_ANGLES = {ARM_STOW, ARM_OUTTAKE, CHAMBER_SCORE, ARM_ROTATE_MIN};
 
     // Create state machines to track what state the arm and lift motors are in. A state machine is a computational model that represents a system
     // with a finite number of states and transitions between those states. It's a powerful tool for managing complex logic and behavior,
-    // especially in systems with dynamic or event-driven interactions. Check out the updateArmState function to see how this works.
-    private enum ArmState { IDLE, MOVING_TO_TARGET, HOLDING_POSITION, STALLED, TIMEOUT, STOW, ERROR}
+    // especially in systems with dynamic or event-driven interactions. Check out the updateArmState and updateLiftState functions to see how this works.
+    private enum ArmState {IDLE, MOVING_TO_TARGET, HOLDING_POSITION, STALLED, TIMEOUT, STOW, ERROR}
     private ArmState armCurrentState = ArmState.IDLE;
+    ElapsedTime armStateTimer = new ElapsedTime();
+    // Arm Variables
+    public int armPositionIndex = 0;
+    private static int armTargetPosition = 0;
     public boolean holdArm = false; // consider triggering the hold behavior in the opMode with a button press. TRUE: maintain arm power after RUN_TO_POSITION is complete, FALSE: stop arm power
-    private enum LiftState { IDLE, MOVING_UP, MOVING_DOWN, HOLDING_POSITION, PRE_HANG_ROUTINE, HANG_ROUTINE, STALLED, TIMEOUT, ERROR}
+
+    // Lift Constants
+    private static final long LIFT_POSITION_TIMEOUT = 3000;
+    private static final int LIFT_ENCODER_RESOLUTION = 28, LIFT_GEAR_RATIO = 20;
+    private static final double LIFT_TRAVEL_PER_ROTATION_INCHES = 120 / 25.4, LIFT_EXTEND_INCREMENT_INCHES = 0.50, LIFT_RETRACT_INCREMENT_INCHES = -0.50;
+    private static final double LIFT_FULLY_RETRACTED = 0, LOW_TO_HIGH_RUNG = 16, LOW_RUNG = 20, LOW_BASKET = 25.75, HIGH_BASKET = 43, LIFT_3_STAGE_EXTENDED = 28.8;
+    public final double[] LIFT_POSITIONS = {LIFT_FULLY_RETRACTED, LOW_RUNG, LOW_BASKET, HIGH_BASKET, LIFT_3_STAGE_EXTENDED};
+    // Lift Variables
+    public int liftPositionIndex = 0;
+    private int liftTargetPosition = 0;
+    private int leftLiftDistanceToTarget =0;
+    private int rightLiftDistanceToTarget =0;
+    ElapsedTime liftStateTimer = new ElapsedTime();
+    private enum LiftState {IDLE, MOVING_UP, MOVING_DOWN, HOLDING_POSITION, PRE_HANG_ROUTINE, HANG_ROUTINE_1, HANG_ROUTINE_2, HANG_ROUTINE_3, HANG_ROUTINE_COMPLETE, STALLED, TIMEOUT, ERROR}
     private LiftState liftCurrentState = LiftState.IDLE;
 
     /**
@@ -142,18 +148,18 @@ public class RobotHardware {
         rightFrontDrive = myOpMode.hardwareMap.get(DcMotor.class, "right_front_drive");
         rightRearDrive  = myOpMode.hardwareMap.get(DcMotor.class, "right_rear_drive");
         arm = myOpMode.hardwareMap.get(DcMotor.class, "arm");
-        liftLeft = myOpMode.hardwareMap.get(DcMotor.class, "lift_left");
-        liftRight = myOpMode.hardwareMap.get(DcMotor.class, "lift_right");
+        leftLift = myOpMode.hardwareMap.get(DcMotor.class, "left_lift");
+        rightLift = myOpMode.hardwareMap.get(DcMotor.class, "right_lift");
 
         // Take advantage of the extended features of the DcMotorEx class, such as reading current draw and setting velocity, if the motor supports it
         if (arm instanceof DcMotorEx) {
             armEx = (DcMotorEx) arm;
         } else telemetry.addData("WARNING: ", "Arm is not a DcMotorEx");
-        if (liftLeft instanceof DcMotorEx) {
-            liftLeftEx = (DcMotorEx) liftLeft;
+        if (leftLift instanceof DcMotorEx) {
+            leftLiftEx = (DcMotorEx) leftLift;
         } else telemetry.addData("WARNING: ", "Left lift is not a DcMotorEx");
-        if (liftRight instanceof DcMotorEx) {
-            liftRightEx = (DcMotorEx) liftRight;
+        if (rightLift instanceof DcMotorEx) {
+            rightLiftEx = (DcMotorEx) rightLift;
         } else telemetry.addData("WARNING: ", "Right lift is not a DcMotorEx");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
@@ -170,8 +176,8 @@ public class RobotHardware {
         rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightRearDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        liftLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        liftRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         // Since there are encoders connected, RUN_USING_ENCODER mode is enabled for greater accuracy
         leftFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -179,8 +185,8 @@ public class RobotHardware {
         rightFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightRearDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        liftLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        liftRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -261,209 +267,6 @@ public class RobotHardware {
         return new int[]{leftFrontDrive.getCurrentPosition(), leftRearDrive.getCurrentPosition(), rightFrontDrive.getCurrentPosition(), rightRearDrive.getCurrentPosition()};
     }
 
-    // Lift Code
-    public void updateLiftState(){
-        switch (liftCurrentState) {
-            case IDLE:
-                liftLeft.setPower(0);
-                liftRight.setPower(0);
-                liftLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                liftRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                // If either motor is far enough from the target distance then go into moving up state or moving down state as needed.
-                if (Math.abs(leftDistanceToTarget) > liftLeftEx.getTargetPositionTolerance() || Math.abs(rightDistanceToTarget) > liftRightEx.getTargetPositionTolerance()) {
-                    if ((leftDistanceToTarget + rightDistanceToTarget)/2 >= 0) liftCurrentState = LiftState.MOVING_UP;
-                    else if ((leftDistanceToTarget + rightDistanceToTarget)/2 < 0) liftCurrentState = LiftState.MOVING_DOWN;
-                    liftStateTimer.reset();
-                }
-                break;
-            // The moving up state is the same as the moving down state, except the moving down state resets its lower limit when it stalls
-            case MOVING_UP:
-                liftLeft.setTargetPosition(liftTargetPosition);
-                liftRight.setTargetPosition(liftTargetPosition);
-                liftLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                liftRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                if (liftStateTimer.seconds() > LIFT_POSITION_TIMEOUT) {
-                    liftCurrentState = LiftState.TIMEOUT;
-                    liftStateTimer.reset();
-                }
-                else if (liftLeftEx.getCurrent(CurrentUnit.AMPS) > MAX_CURRENT_AMPS){
-                    liftCurrentState = LiftState.STALLED;
-                    liftStateTimer.reset();
-                }
-                else if (!liftLeft.isBusy()) {
-                    liftCurrentState = LiftState.HOLDING_POSITION;
-                }
-                break;
-            // The moving down state is different from the hang routine because it is not expecting much resistance on the motors until it hits
-            // the max retraction lower limit, so it uses the stall condition to reset the encoder
-            case MOVING_DOWN:
-                liftLeft.setTargetPosition(liftTargetPosition);
-                liftRight.setTargetPosition(liftTargetPosition);
-                liftLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                liftRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                if (liftStateTimer.seconds() > LIFT_POSITION_TIMEOUT) {
-                    liftCurrentState = LiftState.TIMEOUT;
-                    liftStateTimer.reset();
-                }
-                else if (liftLeftEx.getCurrent(CurrentUnit.AMPS) > MAX_CURRENT_AMPS){
-                    liftCurrentState = LiftState.STALLED;
-                    liftLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    liftRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    liftStateTimer.reset();
-                }
-                else if (!liftLeft.isBusy()) {
-                    liftCurrentState = LiftState.IDLE;
-                }
-                break;
-            case HOLDING_POSITION: // Not currently used
-                break;
-            // need to set up hang routine - this won't look for a stall condition, or at least it will have a higher max current allowed as it's expected that the motors will have to work hard to lift the whole robot.
-            case PRE_HANG_ROUTINE:
-                liftLeft.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
-                liftRight.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
-                armCurrentState = ArmState.STOW;
-                liftLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                liftRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                break;
-            case HANG_ROUTINE:
-                liftLeft.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
-                liftRight.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
-                liftLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                liftRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                while(liftLeft.isBusy() || liftRight.isBusy())
-                sleep(1000);
-                liftLeft.setTargetPosition(calculateEncoderPositionFromLiftInches(LOW_TO_HIGH_RUNG));
-                liftRight.setTargetPosition(calculateEncoderPositionFromLiftInches(LOW_TO_HIGH_RUNG));
-                sleep(1000);
-                liftLeft.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
-                liftRight.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
-                sleep(6000);
-                break;
-            case STALLED:
-                liftTargetPosition = liftLeft.getCurrentPosition(); // pick the left lift, either will do - hopefully they're pretty much the same anyway but the other states will take care of that if they are.
-                liftLeft.setPower(0);
-                liftRight.setPower(0);
-                liftLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                liftRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                if (liftStateTimer.seconds() > 1 && liftLeftEx.getCurrent(CurrentUnit.AMPS) < MAX_CURRENT_AMPS
-                        && liftRightEx.getCurrent(CurrentUnit.AMPS) < MAX_CURRENT_AMPS) liftCurrentState = LiftState.IDLE;
-                break;
-            case TIMEOUT:
-                liftTargetPosition = liftLeft.getCurrentPosition(); // pick the left lift, either will do - hopefully they're pretty much the same anyway but the other states will take care of that if they are.
-                if(liftStateTimer.seconds() > 1) {
-                    liftCurrentState = LiftState.IDLE;
-                    liftStateTimer.reset();
-                }
-                break;
-            // There isn't currently any way the error state triggers. We may be able to get rid of this, but it would be good to get more error handling in the code, so I'm leaving it for now as a reminder
-            case ERROR:
-                telemetry.addData("ERROR", " lift state unable to be read");
-                telemetry.update();
-                break;
-        }
-    }
-    // Public method that Opmodes can call to set the target position for the lift state machine
-    public void setLiftPosition(double targetPosition){
-        this.liftTargetPosition = targetPosition;
-        this.leftDistanceToTarget = targetPosition - liftLeft.getCurrentPosition();
-        this.rightDistanceToTarget = targetPosition - liftRight.getCurrentPosition();
-    }
-    public void setLiftPositionInches(double targetPositionInches) {
-        setLiftPosition(calculateEncoderPositionFromLiftInches(targetPositionInches));
-    }
-    public void liftIncrementInches(){
-        if (getLiftExtensionInches() < LIFT_3_STAGE_EXTENDED) {
-            setLiftPositionInches(getLiftExtensionInches() + LIFT_EXTEND_INCREMENT_INCHES);
-        }
-    }
-    public void liftDecrementInches(){
-        if (getLiftExtensionInches() > LIFT_FULLY_RETRACTED) {
-            setLiftPositionInches(getLiftExtensionInches() - LIFT_RETRACT_INCREMENT_INCHES);
-        }
-    }
-    private int calculateLiftInchesFromEncoderPosition(int encoderPosition) {
-        int ticksPerRevolution = LIFT_ENCODER_RESOLUTION * LIFT_GEAR_RATIO;
-        double inchesPerTick = LIFT_TRAVEL_PER_ROTATION_INCHES / ticksPerRevolution;
-        return (int) (encoderPosition * inchesPerTick);
-    }
-    private int calculateEncoderPositionFromLiftInches(double liftInches) {
-        int ticksPerRevolution = LIFT_ENCODER_RESOLUTION * LIFT_GEAR_RATIO;
-        double inchesPerTick = LIFT_TRAVEL_PER_ROTATION_INCHES / ticksPerRevolution;
-        return (int) (liftInches / inchesPerTick);
-    }
-    public double getLiftExtensionInches(){
-        return calculateLiftInchesFromEncoderPosition(liftLeft.getCurrentPosition());
-    }
-    // Public method that Opmodes can call to get what state the lift is in
-    public LiftState getLiftState(){
-        return liftCurrentState;
-    }
-    // Public method that Opmodes can call to execute the pre-hang routine
-    public void preHangRoutine(){
-        liftCurrentState = LiftState.PRE_HANG_ROUTINE;
-    }
-    // Public method that Opmodes can call to execute the hang routine
-    public void hangRoutine(){
-        liftCurrentState = LiftState.HANG_ROUTINE;
-    }
-    public double getLiftLeftCurrentAmps(){
-        return liftLeftEx.getCurrent(CurrentUnit.AMPS);
-    }
-    public double getLiftRightCurrentAmps(){
-        return liftRightEx.getCurrent(CurrentUnit.AMPS);
-    }
-    public void resetLiftState(){
-        liftCurrentState = LiftState.IDLE;
-    }
-
-    // Gripper Code
-    /**
-     * Send the gripper the new position to go to
-     * @param position value from 0 to 1
-     */
-    public void setGripperPosition(double position) {
-        gripper.setPosition(position);
-    }
-    public void gripperIncrement(){
-        if (gripper.getPosition() < GRIPPER_MAX) {
-            setGripperPosition(gripper.getPosition() + GRIPPER_INCREMENT);
-        }
-    }
-    public void gripperDecrement(){
-        if (gripper.getPosition() > GRIPPER_MIN){
-            setGripperPosition((gripper.getPosition() - GRIPPER_INCREMENT));
-        }
-    }
-    public double getGripperPosition(){
-        return gripper.getPosition();
-    }
-
-    // Wrist Code
-    /**
-     * Send the wrist to a certain position
-     * @param position is a number from 0 to 1
-     */
-    public void setWristPosition(double position){
-       wrist.setPosition(position);
-    }
-    public void setWristAngle(double angle){
-        setWristPosition(RangeUtils.scale(angle, 0, WRIST_MAX_ANGLE, 0, 1));
-    }
-    public double getWristPosition(){
-        return wrist.getPosition();
-    }
-    public void wristIncrement() {
-        setWristPosition(Math.min(1, wrist.getPosition() + WRIST_INCREMENT));
-    }
-    public void wristDecrement() {
-        if (wrist.getPosition() > 0) {
-            setWristPosition(Math.max(0, wrist.getPosition() - WRIST_INCREMENT));
-        }
-    }
-    public double getWristAngle(){
-        return RangeUtils.scale(wrist.getPosition(), 0,1, 0, WRIST_MAX_ANGLE);
-    }
-
     // Arm Code
     // The following function creates a state machine. A state machine is a computational model that represents a system with a finite number of states and transitions between
     // those states. It's a powerful tool for managing complex logic and behavior, especially in systems with dynamic or event-driven interactions.
@@ -526,7 +329,7 @@ public class RobotHardware {
                     armStateTimer.reset();
                 }
             case STOW:
-                armTargetPosition = ARM_STOW_POSITION;
+                armTargetPosition = ARM_STOW;
                 arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 break;
             // There isn't currently any way the error state triggers. We may be able to get rid of this, but it would be good to get more error handling in the code, so I'm leaving it for now as a reminder
@@ -538,7 +341,7 @@ public class RobotHardware {
     }
     // Public method that Opmodes can call to set the target position for the arm state machine
     public void setArmAngle(double targetAngle){
-            this.armTargetPosition = (int) calculateArmEncoderValue(targetAngle - ARM_STARTING_ANGLE_OFFSET);
+        this.armTargetPosition = (int) calculateArmEncoderValue(targetAngle - ARM_STARTING_ANGLE_OFFSET);
     }
     // Public method that Opmodes can call to get what state the arm is in
     public ArmState getArmState(){
@@ -573,12 +376,7 @@ public class RobotHardware {
             setArmAngle(getArmAngleRelativeToZero() - ARM_INCREMENT_DEGREES);
         }
     }
-    /**
-     * Get the encoder information for the arm rotation motor and convert it to degrees.
-     * Mr. Morris: TO DO: Might need to initialize arm angle on startup and/or adjust for starting/resting position.
-     *                    i.e. if starting location is 160 degrees, initialize and offset it at program start to account for this.
-     *                    Add telemetry statement to test and adjust this.
-     */
+    // Get the encoder information for the arm rotation motor and convert it to degrees.Adjust for starting/resting position.
     public double getArmAngleRelativeToZero(){
         int encoderCounts = arm.getCurrentPosition();
         double angleRelativeToZero = calculateAngleFromEncoderValue(encoderCounts) + ARM_STARTING_ANGLE_OFFSET;
@@ -594,6 +392,237 @@ public class RobotHardware {
         return armTargetPosition;
     }
 
+    // Lift Code
+    public void updateLiftState(){
+        switch (liftCurrentState) {
+            case IDLE:
+                leftLift.setPower(0);
+                rightLift.setPower(0);
+                leftLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                rightLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                // If either motor is far enough from the target distance then go into moving up state or moving down state as needed.
+                if (Math.abs(leftLiftDistanceToTarget) > leftLiftEx.getTargetPositionTolerance() || Math.abs(rightLiftDistanceToTarget) > rightLiftEx.getTargetPositionTolerance()) {
+                    if ((leftLiftDistanceToTarget + rightLiftDistanceToTarget)/2 >= 0) liftCurrentState = LiftState.MOVING_UP;
+                    else if ((leftLiftDistanceToTarget + rightLiftDistanceToTarget)/2 < 0) liftCurrentState = LiftState.MOVING_DOWN;
+                    liftStateTimer.reset();
+                }
+                break;
+            // The moving up state is the same as the moving down state, except the moving down state resets its lower limit when it stalls
+            case MOVING_UP:
+                leftLift.setTargetPosition(liftTargetPosition);
+                rightLift.setTargetPosition(liftTargetPosition);
+                leftLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                rightLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                if (liftStateTimer.seconds() > LIFT_POSITION_TIMEOUT) {
+                    liftCurrentState = LiftState.TIMEOUT;
+                    liftStateTimer.reset();
+                }
+                else if (leftLiftEx.getCurrent(CurrentUnit.AMPS) > MAX_CURRENT_AMPS){
+                    liftCurrentState = LiftState.STALLED;
+                    liftStateTimer.reset();
+                }
+                else if (!leftLift.isBusy()) {
+                    liftCurrentState = LiftState.HOLDING_POSITION;
+                }
+                break;
+            // The moving down state is different from the hang routine because it is not expecting much resistance on the motors until it hits
+            // the max retraction lower limit, so it uses the stall condition to reset the encoder
+            case MOVING_DOWN:
+                leftLift.setTargetPosition(liftTargetPosition);
+                rightLift.setTargetPosition(liftTargetPosition);
+                leftLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                rightLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                if (liftStateTimer.seconds() > LIFT_POSITION_TIMEOUT) {
+                    liftCurrentState = LiftState.TIMEOUT;
+                    liftStateTimer.reset();
+                }
+                else if (leftLiftEx.getCurrent(CurrentUnit.AMPS) > MAX_CURRENT_AMPS){
+                    liftCurrentState = LiftState.STALLED;
+                    leftLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    rightLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    liftStateTimer.reset();
+                }
+                else if (!leftLift.isBusy()) {
+                    liftCurrentState = LiftState.IDLE;
+                }
+                break;
+            case HOLDING_POSITION: // Not currently used
+                break;
+            // need to finish hang routine - this won't look for a stall condition, or at least it will have a higher max current allowed as it's expected that the motors will have to work hard to lift the whole robot.
+            case PRE_HANG_ROUTINE:
+                leftLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LOW_RUNG));
+                rightLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LOW_RUNG));
+                armCurrentState = ArmState.STOW;
+                leftLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                rightLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                break;
+            case HANG_ROUTINE_1:
+                leftLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
+                rightLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
+                leftLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                rightLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                if (liftStateTimer.seconds() > 4) { // tune the timeout with testing - this is to prevent a situation where the motors are basically in place but jittering
+                    liftCurrentState = LiftState.HANG_ROUTINE_2;
+                    liftStateTimer.reset();
+                }
+                else if (!leftLift.isBusy() && !rightLift.isBusy()){
+                    liftCurrentState = LiftState.HANG_ROUTINE_2;
+                    liftStateTimer.reset();
+                }
+                break;
+            case HANG_ROUTINE_2:
+                leftLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LOW_TO_HIGH_RUNG));
+                rightLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LOW_TO_HIGH_RUNG));
+                if (liftStateTimer.seconds() > 4) { // tune the timeout with testing - this is to prevent a situation where the motors are basically in place but jittering
+                    liftCurrentState = LiftState.HANG_ROUTINE_3;
+                    liftStateTimer.reset();
+                }
+                else if (!leftLift.isBusy() && !rightLift.isBusy()){
+                    liftCurrentState = LiftState.HANG_ROUTINE_3;
+                    liftStateTimer.reset();
+                }
+                break;
+            case HANG_ROUTINE_3:
+                leftLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
+                rightLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
+                if (liftStateTimer.seconds() > 4) { // tune the timeout with testing - this is to prevent a situation where the motors are basically in place but jittering
+                    liftCurrentState = LiftState.HANG_ROUTINE_COMPLETE;
+                    liftStateTimer.reset();
+                }
+                else if (!leftLift.isBusy() && !rightLift.isBusy()){
+                    liftCurrentState = LiftState.HANG_ROUTINE_COMPLETE;
+                    liftStateTimer.reset();
+                }
+                break;
+            case HANG_ROUTINE_COMPLETE:
+                break;
+            case STALLED:
+                liftTargetPosition = leftLift.getCurrentPosition(); // pick the left lift, either will do - hopefully they're pretty much the same anyway but the other states will take care of that if they are.
+                leftLift.setPower(0);
+                rightLift.setPower(0);
+                leftLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                rightLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                if (liftStateTimer.seconds() > 1 && leftLiftEx.getCurrent(CurrentUnit.AMPS) < MAX_CURRENT_AMPS
+                        && rightLiftEx.getCurrent(CurrentUnit.AMPS) < MAX_CURRENT_AMPS) liftCurrentState = LiftState.IDLE;
+                break;
+            case TIMEOUT:
+                liftTargetPosition = leftLift.getCurrentPosition(); // pick the left lift, either will do - hopefully they're pretty much the same anyway but the other states will take care of that if they are.
+                if(liftStateTimer.seconds() > 1) {
+                    liftCurrentState = LiftState.IDLE;
+                    liftStateTimer.reset();
+                }
+                break;
+            // There isn't currently any way the error state triggers. We may be able to get rid of this, but it would be good to get more error handling in the code, so I'm leaving it for now as a reminder
+            case ERROR:
+                telemetry.addData("ERROR", " lift state unable to be read");
+                telemetry.update();
+                break;
+        }
+    }
+    // Public method that Opmodes can call to set the target position for the lift state machine
+    public void setLiftPosition(int targetPosition){
+        this.liftTargetPosition = targetPosition;
+        this.leftLiftDistanceToTarget = targetPosition - leftLift.getCurrentPosition();
+        this.rightLiftDistanceToTarget = targetPosition - rightLift.getCurrentPosition();
+    }
+    public void setLiftPositionInches(double targetPositionInches) {
+        setLiftPosition(calculateEncoderPositionFromLiftInches(targetPositionInches));
+    }
+    public void liftIncrementInches(){
+        if (getLiftExtensionInches() < LIFT_3_STAGE_EXTENDED) {
+            setLiftPositionInches(getLiftExtensionInches() + LIFT_EXTEND_INCREMENT_INCHES);
+        }
+    }
+    public void liftDecrementInches(){
+        if (getLiftExtensionInches() > LIFT_FULLY_RETRACTED) {
+            setLiftPositionInches(getLiftExtensionInches() - LIFT_RETRACT_INCREMENT_INCHES);
+        }
+    }
+    private int calculateLiftInchesFromEncoderPosition(int encoderPosition) {
+        int ticksPerRevolution = LIFT_ENCODER_RESOLUTION * LIFT_GEAR_RATIO;
+        double inchesPerTick = LIFT_TRAVEL_PER_ROTATION_INCHES / ticksPerRevolution;
+        return (int) (encoderPosition * inchesPerTick);
+    }
+    private int calculateEncoderPositionFromLiftInches(double liftInches) {
+        int ticksPerRevolution = LIFT_ENCODER_RESOLUTION * LIFT_GEAR_RATIO;
+        double inchesPerTick = LIFT_TRAVEL_PER_ROTATION_INCHES / ticksPerRevolution;
+        return (int) (liftInches / inchesPerTick);
+    }
+    public double getLiftExtensionInches(){
+        return calculateLiftInchesFromEncoderPosition(leftLift.getCurrentPosition());
+    }
+    // Public method that Opmodes can call to get what state the lift is in
+    public LiftState getLiftState(){
+        return liftCurrentState;
+    }
+    // Public method that Opmodes can call to execute the pre-hang routine
+    public void preHangRoutine(){
+        liftCurrentState = LiftState.PRE_HANG_ROUTINE;
+    }
+    // Public method that Opmodes can call to execute the hang routine
+    public void hangRoutine(){
+        liftCurrentState = LiftState.HANG_ROUTINE_1;
+    }
+    public double getLiftLeftCurrentAmps(){
+        return leftLiftEx.getCurrent(CurrentUnit.AMPS);
+    }
+    public double getLiftRightCurrentAmps(){
+        return rightLiftEx.getCurrent(CurrentUnit.AMPS);
+    }
+    public void resetLiftState(){
+        liftCurrentState = LiftState.IDLE;
+    }
+
+    // Gripper Code
+    /**
+     * Send the gripper the new position to go to
+     * @param position value from 0 to 1
+     */
+    public void setGripperPosition(double position) {
+        gripper.setPosition(position);
+    }
+    public void gripperIncrement(){
+        if (gripper.getPosition() < GRIPPER_MAX) {
+            setGripperPosition(gripper.getPosition() + GRIPPER_INCREMENT);
+        }
+    }
+    public void gripperDecrement(){
+        if (gripper.getPosition() > GRIPPER_MIN){
+            setGripperPosition((gripper.getPosition() - GRIPPER_INCREMENT));
+        }
+    }
+    public double getGripperPosition(){
+        return gripper.getPosition();
+    }
+
+    // Wrist Code
+    /**
+     * Send the wrist to a certain position
+     * @param position is a number from 0 to 1
+     */
+    public void setWristPosition(double position){
+       wrist.setPosition(position);
+    }
+    public void setWristAngle(double angle){
+        setWristPosition(RangeUtils.scale(angle, 0, WRIST_MAX_ANGLE, 0, 1));
+    }
+    public double getWristPosition(){
+        return wrist.getPosition();
+    }
+    public void wristIncrement() {
+        setWristPosition(Math.min(1, wrist.getPosition() + WRIST_INCREMENT));
+    }
+    public void wristDecrement() {
+        if (wrist.getPosition() > 0) {
+            setWristPosition(Math.max(0, wrist.getPosition() - WRIST_INCREMENT));
+        }
+    }
+    public double getWristAngle(){
+        return RangeUtils.scale(wrist.getPosition(), 0,1, 0, WRIST_MAX_ANGLE);
+    }
+
+    // General Functions
+    // Class to scale and clip values - this functionality is built into opModes but I created my own here for use in the RobotHardware class
     public static class RangeUtils {
         public static double scale(double value, double inputMin, double inputMax, double outputMin, double outputMax) {
             return outputMin + (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin);
