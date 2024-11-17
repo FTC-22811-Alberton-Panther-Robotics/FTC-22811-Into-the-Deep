@@ -58,7 +58,7 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
     /* Declare OpMode members. */
     int legNumber = 0;
     boolean isRedAlliance = true;
-    boolean isNearStart = true;
+    boolean isRightStart = true;
     double startingPause = 0;
 
     @Override
@@ -73,50 +73,52 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
         waitForStart();
 
         ElapsedTime runTime = new ElapsedTime();
-        while(runTime.seconds() < startingPause); // do nothing during starting pause period
+        while(runTime.seconds() < startingPause && opModeIsActive()); // do nothing during starting pause period
 
-        if(isRedAlliance && isNearStart) {
-            // Drive forward for 3 seconds
-            driveForTime(3, .6, 0, 0);
+        // Red Alliance, Right start (closer to human player)
+        if(isRedAlliance && isRightStart) {
+            // Drive forward for 1 second
+            driveForTime(1, .6, 0, 0);
 
-            // Spin right for 1.3 seconds
-            driveForTime(1.3, 0, .5, 0);
+            // Spin right for .8 seconds - this should perform a nearly perfect 90 degree turn
+            driveForTime(.8, 0, .5, 0);
 
             // Stop
             driveForTime(1, 0, 0, 0);
-
-            telemetry.addData("Path", "Complete");
-            telemetry.update();
-            sleep(1000);
         }
-        if(!isRedAlliance && isNearStart) {
+
+        // Blue Alliance, Right start (closer to human player)
+        if(!isRedAlliance && isRightStart) {
             // Strafe right for 1 second
             driveForTime(1, 0, 0, .5);
 
-            // Drive diagonally to left for 2 seconds
-            driveForTime(2, .3, 0, .3);
+            // Drive diagonally to left for 2 second
+            driveForTime(1, .3, 0, .3);
 
             // Stop
             driveForTime(1, 0, 0, 0);
-
         }
-        if(isRedAlliance && !isNearStart){
+
+        // Red Alliance, Left start (closer to baskets)
+        if(isRedAlliance && !isRightStart){
             // Drive backward for 1 second
-            driveForTime(1, -1, 0, 0);
+            driveForTime(1, -.5, 0, 0);
 
-            // Drive in a tight arc to the left for 4 seconds
-            driveForTime(4, .5, -1, 0);
+            // Drive in a tight arc to the left for 1.5 seconds
+            driveForTime(1.5, .5, -1, 0);
 
             // Stop
             driveForTime(1, 0, 0, 0);
         }
-        if(!isRedAlliance && !isNearStart){
+
+        // Blue Alliance, Left start (closer to baskets)
+        if(!isRedAlliance && !isRightStart){
             // Stop
             driveForTime(1, 0, 0, 0);
         }
-    telemetry.addData("Path", "Complete");
-    telemetry.update();
-    sleep(1000);
+        telemetry.addData("Path", "Complete");
+        telemetry.update();
+        sleep(1000);
     }
 
     /**
@@ -136,7 +138,6 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
         }
     }
 
-
     /**
      * This method used a technique called latching with all the button presses where it only toggles
      * when you let go of the button. This keeps from accidentally registering multiple button presses
@@ -144,10 +145,8 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
      */
     private void configAutonomous(){
         int selection = 0;
-        final int SELECTION_COUNT = 3; // Number of options in selection list.
-        boolean dpadDownPressed = false;
-        boolean dpadUpPressed = false;
-        boolean dpadRightOrLeftPressed = false;
+        final int SELECTION_COUNT = 4; // Number of options in selection list.
+        boolean dpadDownPressed = false, dpadUpPressed = false, dpadRightOrLeftPressed = false, dpadRightPressed = false, dpadLeftPressed = false;
         boolean configComplete = false;
 
         // This loops until the x
@@ -171,6 +170,7 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
 
             // The following blocks display an arrow next to the option currently being selected and wait for
             // you to toggle that option by pressing either dpad_left or dpad_right
+            telemetry.addLine("Press Dpad Up/Down to choose an option, and Left/Right to change options");
             if(selection == 1) {
                 telemetry.addData("-->Alliance: ", isRedAlliance ?"Red": "Blue"); //This syntax is an inline if statement that can be used in simple cases
                 if(gamepad1.dpad_right || gamepad1.dpad_left) dpadRightOrLeftPressed = true;
@@ -181,25 +181,25 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
             } else telemetry.addData("Alliance: ", isRedAlliance ?"Red": "Blue");
 
             if(selection == 2) {
-                telemetry.addData("-->Starting Position: ", isNearStart ?"Near": "Far");
+                telemetry.addData("-->Starting Position: ", isRightStart ?"Right": "Left");
                 if(gamepad1.dpad_right || gamepad1.dpad_left) dpadRightOrLeftPressed = true;
                 else if(dpadRightOrLeftPressed && !(gamepad1.dpad_right || gamepad1.dpad_left)){
                     dpadRightOrLeftPressed = false;
-                    isNearStart = !isNearStart;
+                    isRightStart = !isRightStart;
                 }
-            } else telemetry.addData("Starting Position: ", isNearStart ?"Near": "Far");
+            } else telemetry.addData("Starting Position: ", isRightStart ?"Right": "Left");
 
             if(selection == 3) {
                 telemetry.addData("-->Starting Pause: ", startingPause +" seconds");
-                if(gamepad1.dpad_right) dpadRightOrLeftPressed = true;
-                else if(dpadRightOrLeftPressed && !gamepad1.dpad_right){
-                    dpadRightOrLeftPressed = false;
-                    startingPause += .5;
+                if(gamepad1.dpad_right) dpadRightPressed = true;
+                else if(dpadRightPressed && !gamepad1.dpad_right){
+                    dpadRightPressed = false;
+                    startingPause += 0.5;
                 }
-                if(gamepad1.dpad_left) dpadRightOrLeftPressed = true;
-                else if(dpadRightOrLeftPressed && !gamepad1.dpad_left){
-                    dpadRightOrLeftPressed = false;
-                    startingPause -= .5;
+                if(gamepad1.dpad_left) dpadLeftPressed = true;
+                else if(dpadLeftPressed && !gamepad1.dpad_left){
+                    dpadLeftPressed = false;
+                    startingPause -= 0.5;
                 }
             } else telemetry.addData("Starting Pause: ", startingPause +" seconds");
 
