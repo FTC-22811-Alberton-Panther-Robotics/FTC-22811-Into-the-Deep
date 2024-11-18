@@ -93,7 +93,6 @@ public class CompetitionTeleop extends LinearOpMode {
         robot.init();
         ElapsedTime runtime = new ElapsedTime();
 
-
         // Send telemetry message to signify robot waiting;
         telemetry.addData(">", "Robot Ready.  Press Play to start OpMode.");
         telemetry.update();
@@ -112,7 +111,8 @@ public class CompetitionTeleop extends LinearOpMode {
             // In this mode the Left stick moves the robot fwd and back and left and right, the Right stick turns left and right.
             // This way it's easy to drive diagonally and have good control of heading.
 
-            ////Mr. Morris: Alternatively we could use right trigger for forward, left trigger for reverse, left_stick_x for turning
+            /// Mr. Morris: Alternatively we could use right trigger for forward, left trigger for reverse, left_stick_x for strafing and right_stick_x for turning,
+            ///             then left/right stick_y could be free for arms or something
             forward = -gamepad1.left_stick_y;
             strafe = gamepad1.left_stick_x;
             turn  =  gamepad1.right_stick_x;
@@ -235,7 +235,8 @@ public class CompetitionTeleop extends LinearOpMode {
                 robot.resetLiftState();
             }
 
-            /** This code needs updated. We probably don't want the wrist matching the arm angle all the time since it needs to reach back to the lift, however it might be nice to have it go to preset angles when the arm goes to presets */
+            /// This code needs updated. We probably don't want the wrist matching the arm angle all the time since it needs to reach back to the lift,
+            /// however it might be nice to have it go to preset angles when the arm goes to presets
             // Move wrist so that it moves when arm rotates to keep gripper parallel to floor
             // e.g. if arm angle is at -30 (30 degrees below forward horizontal), wrist must be 30 (30 degrees above forward horizontal) to keep gripper horizontal
 //            robot.setWristAngle(-robot.getArmAngle());

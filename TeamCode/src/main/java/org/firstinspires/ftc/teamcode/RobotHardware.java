@@ -189,6 +189,8 @@ public class RobotHardware {
         rightLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftLift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightLift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Define and initialize ALL installed servos.
         wrist = myOpMode.hardwareMap.get(Servo.class, "wrist");
@@ -289,7 +291,7 @@ public class RobotHardware {
             case MOVING_TO_TARGET:
                 arm.setTargetPosition(armTargetPosition);
                 arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                int distance = armTargetPosition - arm.getCurrentPosition(); // This was used previously to compensate velocity to speed up small moves. velocity = 500 + 500* (1-distance
+                int distance = armTargetPosition - arm.getCurrentPosition(); // This is used to calculate which direction the motor is going to move to adjust gravity correctly (add speed when going up, slow when going down)
                 double gravityCompensation = 300 * Math.cos(Math.toRadians(calculateAngleFromEncoderValue(arm.getCurrentPosition()))); // Adjust gravity compensation as needed
                 double velocity = 1000;
                 if (distance >= 0) {velocity += gravityCompensation;}
@@ -308,7 +310,7 @@ public class RobotHardware {
                     else armCurrentState = ArmState.IDLE;
                 }
                 break;
-            // The holding position state only happens if holdArm is toggled true (currently no button assigned in MorrisPOVDrive)
+            // The holding position state only happens if holdArm is toggled true (currently no button assigned in CompetitionTeleop)
             // it will keep power on to the motor the whole time, which helps maintain position more rigidly but draws more power.
             case HOLDING_POSITION:
                 if (!holdArm) {armCurrentState = ArmState.IDLE;}
@@ -461,7 +463,7 @@ public class RobotHardware {
                 rightLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
                 leftLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 rightLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                if (liftStateTimer.seconds() > 4) { // tune the timeout with testing - this is to prevent a situation where the motors are basically in place but jittering
+                if (liftStateTimer.seconds() > 4) { // tune the timeout with testing - less is better - this is to prevent a situation where the motors are basically in place but jittering
                     liftCurrentState = LiftState.HANG_ROUTINE_2;
                     liftStateTimer.reset();
                 }
@@ -473,7 +475,7 @@ public class RobotHardware {
             case HANG_ROUTINE_2:
                 leftLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LOW_TO_HIGH_RUNG));
                 rightLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LOW_TO_HIGH_RUNG));
-                if (liftStateTimer.seconds() > 4) { // tune the timeout with testing - this is to prevent a situation where the motors are basically in place but jittering
+                if (liftStateTimer.seconds() > 4) { // tune the timeout with testing - less is better - this is to prevent a situation where the motors are basically in place but jittering
                     liftCurrentState = LiftState.HANG_ROUTINE_3;
                     liftStateTimer.reset();
                 }
@@ -485,7 +487,7 @@ public class RobotHardware {
             case HANG_ROUTINE_3:
                 leftLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
                 rightLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
-                if (liftStateTimer.seconds() > 4) { // tune the timeout with testing - this is to prevent a situation where the motors are basically in place but jittering
+                if (liftStateTimer.seconds() > 4) { // tune the timeout with testing - less is better - this is to prevent a situation where the motors are basically in place but jittering
                     liftCurrentState = LiftState.HANG_ROUTINE_COMPLETE;
                     liftStateTimer.reset();
                 }
