@@ -58,7 +58,7 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
     /* Declare OpMode members. */
     int legNumber = 0;
     boolean isRedAlliance = true;
-    boolean isRightStart = true;
+    boolean isLeftStart = true;
     double startingPause = 0;
 
     @Override
@@ -75,8 +75,8 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
         ElapsedTime runTime = new ElapsedTime();
         while(runTime.seconds() < startingPause && opModeIsActive()); // do nothing during starting pause period
 
-        // Red Alliance, Right start (closer to human player)
-        if(isRedAlliance && isRightStart) {
+        // Red Alliance, Right start (closer to observation zone / human player)
+        if(isRedAlliance && !isLeftStart) {
             // Drive forward for 1 second
             driveForTime(1, .6, 0, 0);
 
@@ -87,8 +87,8 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
             driveForTime(1, 0, 0, 0);
         }
 
-        // Blue Alliance, Right start (closer to human player)
-        if(!isRedAlliance && isRightStart) {
+        // Blue Alliance, Right start (closer to observation zone / human player)
+        if(!isRedAlliance && !isLeftStart) {
             // Strafe right for 1 second
             driveForTime(1, 0, 0, .5);
 
@@ -99,8 +99,8 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
             driveForTime(1, 0, 0, 0);
         }
 
-        // Red Alliance, Left start (closer to baskets)
-        if(isRedAlliance && !isRightStart){
+        // Red Alliance, Left start (closer to net zone / baskets)
+        if(isRedAlliance && isLeftStart){
             // Drive backward for 1 second
             driveForTime(1, -.5, 0, 0);
 
@@ -111,8 +111,14 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
             driveForTime(1, 0, 0, 0);
         }
 
-        // Blue Alliance, Left start (closer to baskets)
-        if(!isRedAlliance && !isRightStart){
+        // Blue Alliance, Left start (closer to net zone / baskets)
+        if(!isRedAlliance && isLeftStart){
+            // Strafe right for 1 second
+            driveForTime(1, 0, 0, .5);
+
+            // Drive diagonally to left for 2 second
+            driveForTime(1, .3, 0, .3);
+
             // Stop
             driveForTime(1, 0, 0, 0);
         }
@@ -181,13 +187,13 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
             } else telemetry.addData("Alliance: ", isRedAlliance ?"Red": "Blue");
 
             if(selection == 2) {
-                telemetry.addData("-->Starting Position: ", isRightStart ?"Right": "Left");
+                telemetry.addData("-->Starting Position: ", isLeftStart ?"Left": "Right");
                 if(gamepad1.dpad_right || gamepad1.dpad_left) dpadRightOrLeftPressed = true;
                 else if(dpadRightOrLeftPressed && !(gamepad1.dpad_right || gamepad1.dpad_left)){
                     dpadRightOrLeftPressed = false;
-                    isRightStart = !isRightStart;
+                    isLeftStart = !isLeftStart;
                 }
-            } else telemetry.addData("Starting Position: ", isRightStart ?"Right": "Left");
+            } else telemetry.addData("Starting Position: ", isLeftStart ?"Left": "Right");
 
             if(selection == 3) {
                 telemetry.addData("-->Starting Pause: ", startingPause +" seconds");
