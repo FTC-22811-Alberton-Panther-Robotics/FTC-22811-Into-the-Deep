@@ -71,7 +71,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  *                              8) Wrote code for lift but will need testing and refinement, especially the hang sequence
  */
 
-@TeleOp(name="Competition Teleop", group="0 Teleop")
+@TeleOp(name="CompetitionTeleop", group="Teleop")
 //@Disabled
 public class CompetitionTeleop extends LinearOpMode {
 

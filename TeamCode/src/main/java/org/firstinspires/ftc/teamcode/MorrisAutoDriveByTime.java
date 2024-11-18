@@ -47,7 +47,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  *   otherwise you would use: RobotAutoDriveByEncoder;
  */
 
-@Autonomous(name="Robot: Auto Drive By Time", group="Test Code", preselectTeleOp = "MorrisPOVDrive")
+@Autonomous(name="Robot: Auto Drive By Time", group="Auto", preselectTeleOp = "CompetitionTeleop")
 //@Disabled
 public class MorrisAutoDriveByTime extends LinearOpMode {
 
