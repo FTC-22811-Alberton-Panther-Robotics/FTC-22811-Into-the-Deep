@@ -86,7 +86,7 @@ public class CompetitionTeleop extends LinearOpMode {
         double strafe;
         double aLastTime = 0, bLastTime = 0, xLastTime = 0, yLastTime = 0, rBLastTime = 0, lBLastTime = 0, dPadUpLastTime = 0, dpadDownLastTime = 0, rightTriggerLastTime = 0, leftTriggerLastTime = 0;
         boolean aButtonPressed = false, bButtonPressed = false, xButtonPressed = false, yButtonPressed = false, dPadUpPressed = false, dPadDownPressed = false, dPadLeftPressed = false, dPadRightPressed = false,
-                rightTriggerPressed = false, leftTriggerPressed = false, backButtonPressed = false, startButtonPressed = false;
+                rightTriggerPressed = false, leftTriggerPressed = false, backButtonPressed = false, startButtonPressed = false, preHangStarted = false, hangStarted = false;
         final double BUTTON_PRESS_DELAY = .075;// seconds, keep track of how long a button has been pressed and allow for a quick press to move a servo a small amount while a long press moves the servo a longer distance.
 
         // initialize all the hardware, using the hardware class. See how clean and simple this is?
@@ -115,7 +115,7 @@ public class CompetitionTeleop extends LinearOpMode {
             ///             then left/right stick_y could be free for arms or something
             forward = -gamepad1.left_stick_y;
             strafe = gamepad1.left_stick_x;
-            turn  =  gamepad1.right_stick_x;
+            turn = gamepad1.right_stick_x;
 
             // Combine forward and turn for blended motion. Use org.firstinspires.ftc.teamcode.RobotHardware class
             robot.mechanumDrive(forward, strafe, turn);
@@ -127,18 +127,18 @@ public class CompetitionTeleop extends LinearOpMode {
             // Close gripper when right bumper is pressed if it's not already at max, open gripper when left bumper is pressed if it's not already at min
             // Keeps track of how long a button is pressed and moves a small amount for a short press and a larger amount for a long press
             // Use the MOTOR constants defined in org.firstinspires.ftc.teamcode.RobotHardware class.
-            if (gamepad1.right_bumper && runtime.seconds() - rBLastTime > BUTTON_PRESS_DELAY){
+            if (gamepad1.right_bumper && runtime.seconds() - rBLastTime > BUTTON_PRESS_DELAY) {
                 robot.gripperIncrement();
                 rBLastTime = runtime.seconds();
             }
-            if (gamepad1.left_bumper && runtime.seconds() - lBLastTime > BUTTON_PRESS_DELAY){
+            if (gamepad1.left_bumper && runtime.seconds() - lBLastTime > BUTTON_PRESS_DELAY) {
                 robot.gripperDecrement();
                 lBLastTime = runtime.seconds();
             }
             // Use gamepad X and Y buttons to cycle through lift height presets
             // Go to next higher lift height preset
-            if (gamepad1.y){
-                if (!yButtonPressed && robot.armPositionIndex < robot.ARM_ANGLES.length - 1){
+            if (gamepad1.y) {
+                if (!yButtonPressed && robot.armPositionIndex < robot.ARM_ANGLES.length - 1) {
                     robot.armPositionIndex = robot.armPositionIndex + 1;
                     robot.setArmAngle(robot.ARM_ANGLES[robot.armPositionIndex]);
                     yButtonPressed = true;
@@ -151,18 +151,18 @@ public class CompetitionTeleop extends LinearOpMode {
                     robot.setArmAngle(robot.ARM_ANGLES[robot.armPositionIndex]);
                     xButtonPressed = true;
                 }
-            } else dPadLeftPressed = false;
+            } else xButtonPressed = false;
 
             // Use gamepad buttons to rotate arm forward/down (dpad down) and back/up (dpad up)
-            if (gamepad1.b){
-                if (!bButtonPressed){
+            if (gamepad1.b) {
+                if (!bButtonPressed) {
                     robot.armAngleIncrement();
                     bButtonPressed = true;
                 }
             } else bButtonPressed = false;
 
-            if (gamepad1.a){
-                if (!aButtonPressed){
+            if (gamepad1.a) {
+                if (!aButtonPressed) {
                     robot.armAngleDecrement();
                     aButtonPressed = true;
                 }
@@ -213,27 +213,34 @@ public class CompetitionTeleop extends LinearOpMode {
             // Pre-Hang Routine
             if (gamepad1.back){
                 if (!backButtonPressed){
-                    robot.preHangRoutine();
                     backButtonPressed = true;
+                    if (!preHangStarted){
+                        robot.preHangRoutine();
+                        robot.liftStateTimer.reset();
+                        preHangStarted = true;
+                    } else{
+                        robot.resetArmState();
+                        robot.resetLiftState();
+                        preHangStarted = false;
+                    }
                 }
-            }else {
-                backButtonPressed = false;
-                robot.resetArmState();
-                robot.resetLiftState();
-            }
+            }else backButtonPressed = false;
 
             // Hang Routine
             if (gamepad1.start){
-                if (!startButtonPressed){
-                    robot.hangRoutine();
-                    robot.liftStateTimer.reset();
+                if (!startButtonPressed) {
                     startButtonPressed = true;
+                    if (!hangStarted) {
+                        robot.hangRoutine();
+                        robot.liftStateTimer.reset();
+                        hangStarted = true;
+                    } else {
+                        robot.resetArmState();
+                        robot.resetLiftState();
+                        hangStarted = false;
+                    }
                 }
-            }else {
-                startButtonPressed = false;
-                robot.resetArmState();
-                robot.resetLiftState();
-            }
+            } else startButtonPressed = false;
 
             /// This code needs updated. We probably don't want the wrist matching the arm angle all the time since it needs to reach back to the lift,
             /// however it might be nice to have it go to preset angles when the arm goes to presets
@@ -254,6 +261,8 @@ public class CompetitionTeleop extends LinearOpMode {
             telemetry.addData("Gripper Position",  "%.2f", robot.getGripperPosition());
             telemetry.addData("Wrist Position", "%.2f", robot.getWristPosition());
             telemetry.addData("Wrist Angle", "%.2f", robot.getWristAngle());
+            telemetry.addData("Arm Position Index", robot.armPositionIndex);
+            telemetry.addData("Arm Angle Preset Target", robot.ARM_ANGLES[robot.armPositionIndex]);
             telemetry.addData("Arm Angle Relative to Zero", "%.2f",robot.getArmAngleRelativeToZero());
             telemetry.addData("Arm Target Angle", "%.2f",robot.getArmTargetAngle());
 //            telemetry.addData("Arm Position", "%.2f",robot.getArmEncoderCounts());

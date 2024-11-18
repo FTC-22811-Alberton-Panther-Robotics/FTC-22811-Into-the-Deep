@@ -108,7 +108,7 @@ public class RobotHardware {
     private static final long ARM_POSITION_TIMEOUT = 3000;
     private static final int ARM_INCREMENT_DEGREES = 10, ARM_ROTATE_MAX = 160, ARM_ROTATE_MIN = -20, ARM_ROTATE_ENCODER_RESOLUTION = 28, ARM_ROTATE_GEAR_RATIO = 60, // Straight forward defined as 0 degrees
             ARM_STARTING_ANGLE_OFFSET = ARM_ROTATE_MAX, ARM_STOW = ARM_STARTING_ANGLE_OFFSET, ARM_INTAKE = 0, CHAMBER_SCORE = 70, ARM_OUTTAKE = 130;
-    public final double[] ARM_ANGLES = {ARM_STOW, ARM_OUTTAKE, CHAMBER_SCORE, ARM_ROTATE_MIN};
+    public final double[] ARM_ANGLES = {ARM_STOW, ARM_OUTTAKE, CHAMBER_SCORE, ARM_INTAKE, ARM_ROTATE_MIN};
 
     // Create state machines to track what state the arm and lift motors are in. A state machine is a computational model that represents a system
     // with a finite number of states and transitions between those states. It's a powerful tool for managing complex logic and behavior,
@@ -118,7 +118,7 @@ public class RobotHardware {
     ElapsedTime armStateTimer = new ElapsedTime();
     // Arm Variables
     public int armPositionIndex = 0;
-    private static int armTargetPosition = 0;
+    private int armTargetPosition = 0;
     public boolean holdArm = false; // consider triggering the hold behavior in the opMode with a button press. TRUE: maintain arm power after RUN_TO_POSITION is complete, FALSE: stop arm power
 
     // Lift Constants
@@ -135,6 +135,8 @@ public class RobotHardware {
     ElapsedTime liftStateTimer = new ElapsedTime();
     private enum LiftState {IDLE, MOVING_UP, MOVING_DOWN, HOLDING_POSITION, PRE_HANG_ROUTINE, HANG_ROUTINE_1, HANG_ROUTINE_2, HANG_ROUTINE_3, HANG_ROUTINE_COMPLETE, STALLED, TIMEOUT, ERROR}
     private LiftState liftCurrentState = LiftState.IDLE;
+    private enum HangState {NONE, PRE_HANG, HANG};
+    private HangState hangCurrentState = HangState.NONE;
 
     /**
      * Initialize all the robot's hardware.
@@ -195,7 +197,6 @@ public class RobotHardware {
         // Define and initialize ALL installed servos.
         wrist = myOpMode.hardwareMap.get(Servo.class, "wrist");
         gripper = myOpMode.hardwareMap.get(Servo.class, "gripper");
-        gripper.setPosition(GRIPPER_MIN);
 
         myOpMode.telemetry.addData(">", "Hardware Initialized");
         myOpMode.telemetry.update();
@@ -376,6 +377,16 @@ public class RobotHardware {
     public void armAngleDecrement(){
         if (getArmAngleRelativeToZero() > ARM_ROTATE_MIN){
             setArmAngle(getArmAngleRelativeToZero() - ARM_INCREMENT_DEGREES);
+        }
+    }
+    public void updateHangState(){
+        switch (hangCurrentState) {
+            case NONE:
+                break;
+            case PRE_HANG:
+                break;
+            case HANG:
+                break;
         }
     }
     // Get the encoder information for the arm rotation motor and convert it to degrees.Adjust for starting/resting position.
