@@ -132,11 +132,12 @@ public class RobotHardware {
     private int liftTargetPosition = 0;
     private int leftLiftDistanceToTarget =0;
     private int rightLiftDistanceToTarget =0;
-    ElapsedTime liftStateTimer = new ElapsedTime();
-    private enum LiftState {IDLE, MOVING_UP, MOVING_DOWN, HOLDING_POSITION, PRE_HANG_ROUTINE, HANG_ROUTINE_1, HANG_ROUTINE_2, HANG_ROUTINE_3, HANG_ROUTINE_COMPLETE, STALLED, TIMEOUT, ERROR}
+    private enum LiftState {IDLE, MOVING_UP, MOVING_DOWN, HOLDING_POSITION, STALLED, TIMEOUT, ERROR}
     private LiftState liftCurrentState = LiftState.IDLE;
-    private enum HangState {NONE, PRE_HANG, HANG};
+    private enum HangState {NONE, PRE_HANG, HANG_ONE, HANG_TWO, HANG_THREE, HANG_COMPLETE};
     private HangState hangCurrentState = HangState.NONE;
+    private int hangIndex = 0;
+    ElapsedTime hangStateTimer = new ElapsedTime();
 
     /**
      * Initialize all the robot's hardware.
@@ -383,9 +384,53 @@ public class RobotHardware {
         switch (hangCurrentState) {
             case NONE:
                 break;
+            // need to finish hang routine - this won't look for a stall condition, or at least it will have a higher max current allowed as it's expected that the motors will have to work hard to lift the whole robot.
             case PRE_HANG:
+                leftLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LOW_RUNG));
+                rightLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LOW_RUNG));
+                armCurrentState = ArmState.STOW;
+                leftLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                rightLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 break;
-            case HANG:
+            case HANG_ONE:
+                leftLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
+                rightLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
+                leftLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                rightLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                if (hangStateTimer.seconds() > 4) { // tune the timeout with testing - less is better - this is to prevent a situation where the motors are basically in place but jittering
+                    hangCurrentState = HangState.HANG_TWO;
+                    hangStateTimer.reset();
+                }
+                else if (!leftLift.isBusy() && !rightLift.isBusy()){
+                    hangCurrentState = HangState.HANG_TWO;
+                    hangStateTimer.reset();
+                }
+                break;
+            case HANG_TWO:
+                leftLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LOW_TO_HIGH_RUNG));
+                rightLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LOW_TO_HIGH_RUNG));
+                if (hangStateTimer.seconds() > 4) { // tune the timeout with testing - less is better - this is to prevent a situation where the motors are basically in place but jittering
+                    hangCurrentState = HangState.HANG_THREE;
+                    hangStateTimer.reset();
+                }
+                else if (!leftLift.isBusy() && !rightLift.isBusy()){
+                    hangCurrentState = HangState.HANG_THREE;
+                    hangStateTimer.reset();
+                }
+                break;
+            case HANG_THREE:
+                leftLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
+                rightLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
+                if (hangStateTimer.seconds() > 4) { // tune the timeout with testing - less is better - this is to prevent a situation where the motors are basically in place but jittering
+                    hangCurrentState = HangState.HANG_COMPLETE;
+                    hangStateTimer.reset();
+                }
+                else if (!leftLift.isBusy() && !rightLift.isBusy()){
+                    hangCurrentState = HangState.HANG_COMPLETE;
+                    hangStateTimer.reset();
+                }
+                break;
+            case HANG_COMPLETE:
                 break;
         }
     }
@@ -417,7 +462,7 @@ public class RobotHardware {
                 if (Math.abs(leftLiftDistanceToTarget) > leftLiftEx.getTargetPositionTolerance() || Math.abs(rightLiftDistanceToTarget) > rightLiftEx.getTargetPositionTolerance()) {
                     if ((leftLiftDistanceToTarget + rightLiftDistanceToTarget)/2 >= 0) liftCurrentState = LiftState.MOVING_UP;
                     else if ((leftLiftDistanceToTarget + rightLiftDistanceToTarget)/2 < 0) liftCurrentState = LiftState.MOVING_DOWN;
-                    liftStateTimer.reset();
+                    hangStateTimer.reset();
                 }
                 break;
             // The moving up state is the same as the moving down state, except the moving down state resets its lower limit when it stalls
@@ -426,13 +471,13 @@ public class RobotHardware {
                 rightLift.setTargetPosition(liftTargetPosition);
                 leftLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 rightLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                if (liftStateTimer.seconds() > LIFT_POSITION_TIMEOUT) {
+                if (hangStateTimer.seconds() > LIFT_POSITION_TIMEOUT) {
                     liftCurrentState = LiftState.TIMEOUT;
-                    liftStateTimer.reset();
+                    hangStateTimer.reset();
                 }
                 else if (leftLiftEx.getCurrent(CurrentUnit.AMPS) > MAX_CURRENT_AMPS){
                     liftCurrentState = LiftState.STALLED;
-                    liftStateTimer.reset();
+                    hangStateTimer.reset();
                 }
                 else if (!leftLift.isBusy()) {
                     liftCurrentState = LiftState.HOLDING_POSITION;
@@ -445,15 +490,15 @@ public class RobotHardware {
                 rightLift.setTargetPosition(liftTargetPosition);
                 leftLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 rightLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                if (liftStateTimer.seconds() > LIFT_POSITION_TIMEOUT) {
+                if (hangStateTimer.seconds() > LIFT_POSITION_TIMEOUT) {
                     liftCurrentState = LiftState.TIMEOUT;
-                    liftStateTimer.reset();
+                    hangStateTimer.reset();
                 }
                 else if (leftLiftEx.getCurrent(CurrentUnit.AMPS) > MAX_CURRENT_AMPS){
                     liftCurrentState = LiftState.STALLED;
                     leftLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     rightLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    liftStateTimer.reset();
+                    hangStateTimer.reset();
                 }
                 else if (!leftLift.isBusy()) {
                     liftCurrentState = LiftState.IDLE;
@@ -461,68 +506,20 @@ public class RobotHardware {
                 break;
             case HOLDING_POSITION: // Not currently used
                 break;
-            // need to finish hang routine - this won't look for a stall condition, or at least it will have a higher max current allowed as it's expected that the motors will have to work hard to lift the whole robot.
-            case PRE_HANG_ROUTINE:
-                leftLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LOW_RUNG));
-                rightLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LOW_RUNG));
-                armCurrentState = ArmState.STOW;
-                leftLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                rightLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                break;
-            case HANG_ROUTINE_1:
-                leftLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
-                rightLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
-                leftLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                rightLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                if (liftStateTimer.seconds() > 4) { // tune the timeout with testing - less is better - this is to prevent a situation where the motors are basically in place but jittering
-                    liftCurrentState = LiftState.HANG_ROUTINE_2;
-                    liftStateTimer.reset();
-                }
-                else if (!leftLift.isBusy() && !rightLift.isBusy()){
-                    liftCurrentState = LiftState.HANG_ROUTINE_2;
-                    liftStateTimer.reset();
-                }
-                break;
-            case HANG_ROUTINE_2:
-                leftLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LOW_TO_HIGH_RUNG));
-                rightLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LOW_TO_HIGH_RUNG));
-                if (liftStateTimer.seconds() > 4) { // tune the timeout with testing - less is better - this is to prevent a situation where the motors are basically in place but jittering
-                    liftCurrentState = LiftState.HANG_ROUTINE_3;
-                    liftStateTimer.reset();
-                }
-                else if (!leftLift.isBusy() && !rightLift.isBusy()){
-                    liftCurrentState = LiftState.HANG_ROUTINE_3;
-                    liftStateTimer.reset();
-                }
-                break;
-            case HANG_ROUTINE_3:
-                leftLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
-                rightLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
-                if (liftStateTimer.seconds() > 4) { // tune the timeout with testing - less is better - this is to prevent a situation where the motors are basically in place but jittering
-                    liftCurrentState = LiftState.HANG_ROUTINE_COMPLETE;
-                    liftStateTimer.reset();
-                }
-                else if (!leftLift.isBusy() && !rightLift.isBusy()){
-                    liftCurrentState = LiftState.HANG_ROUTINE_COMPLETE;
-                    liftStateTimer.reset();
-                }
-                break;
-            case HANG_ROUTINE_COMPLETE:
-                break;
             case STALLED:
                 liftTargetPosition = leftLift.getCurrentPosition(); // pick the left lift, either will do - hopefully they're pretty much the same anyway but the other states will take care of that if they are.
                 leftLift.setPower(0);
                 rightLift.setPower(0);
                 leftLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                 rightLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                if (liftStateTimer.seconds() > 1 && leftLiftEx.getCurrent(CurrentUnit.AMPS) < MAX_CURRENT_AMPS
+                if (hangStateTimer.seconds() > 1 && leftLiftEx.getCurrent(CurrentUnit.AMPS) < MAX_CURRENT_AMPS
                         && rightLiftEx.getCurrent(CurrentUnit.AMPS) < MAX_CURRENT_AMPS) liftCurrentState = LiftState.IDLE;
                 break;
             case TIMEOUT:
                 liftTargetPosition = leftLift.getCurrentPosition(); // pick the left lift, either will do - hopefully they're pretty much the same anyway but the other states will take care of that if they are.
-                if(liftStateTimer.seconds() > 1) {
+                if(hangStateTimer.seconds() > 1) {
                     liftCurrentState = LiftState.IDLE;
-                    liftStateTimer.reset();
+                    hangStateTimer.reset();
                 }
                 break;
             // There isn't currently any way the error state triggers. We may be able to get rid of this, but it would be good to get more error handling in the code, so I'm leaving it for now as a reminder
@@ -569,13 +566,12 @@ public class RobotHardware {
         return liftCurrentState;
     }
     // Public method that Opmodes can call to execute the pre-hang routine
-    public void preHangRoutine(){
-        liftCurrentState = LiftState.PRE_HANG_ROUTINE;
+    public void cycleHangState(){
+        hangIndex +=1;
+        hangIndex = hangIndex % 2;
+        hangCurrentState = HangState.values()[hangIndex];
     }
-    // Public method that Opmodes can call to execute the hang routine
-    public void hangRoutine(){
-        liftCurrentState = LiftState.HANG_ROUTINE_1;
-    }
+
     public double getLiftLeftCurrentAmps(){
         return leftLiftEx.getCurrent(CurrentUnit.AMPS);
     }

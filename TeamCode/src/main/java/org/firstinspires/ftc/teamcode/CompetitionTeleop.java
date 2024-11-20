@@ -173,15 +173,15 @@ public class CompetitionTeleop extends LinearOpMode {
                 robot.wristIncrement();
                 rightTriggerLastTime = runtime.seconds();
             }
-            if (gamepad1.left_trigger > 0.1 && runtime.seconds() - leftTriggerLastTime > BUTTON_PRESS_DELAY){
+            if (gamepad1.left_trigger > 0.1 && runtime.seconds() - leftTriggerLastTime > BUTTON_PRESS_DELAY) {
                 robot.wristDecrement();
                 leftTriggerLastTime = runtime.seconds();
             }
 
             // Use gamepad Dpad left and right buttons to cycle through lift height presets
             // Go to next higher lift height preset
-            if (gamepad1.dpad_right){
-                if (!dPadRightPressed && robot.liftPositionIndex < robot.LIFT_POSITIONS.length - 1){
+            if (gamepad1.dpad_right) {
+                if (!dPadRightPressed && robot.liftPositionIndex < robot.LIFT_POSITIONS.length - 1) {
                     robot.liftPositionIndex = robot.liftPositionIndex + 1;
                     robot.setLiftPositionInches(robot.LIFT_POSITIONS[robot.liftPositionIndex]);
                     dPadRightPressed = true;
@@ -197,8 +197,8 @@ public class CompetitionTeleop extends LinearOpMode {
             } else dPadLeftPressed = false;
 
             // Use gamepad Dpad up and down buttons to extend and retract the slides by a preset amount.
-            if (gamepad1.dpad_up){
-                if (!dPadUpPressed){
+            if (gamepad1.dpad_up) {
+                if (!dPadUpPressed) {
                     robot.liftIncrementInches(); // extend when Dpad up is pressed
                     dPadUpPressed = true;
                 }
@@ -210,37 +210,21 @@ public class CompetitionTeleop extends LinearOpMode {
                 }
             } else dPadDownPressed = false;
 
-            // Pre-Hang Routine
-            if (gamepad1.back){
-                if (!backButtonPressed){
-                    backButtonPressed = true;
-                    if (!preHangStarted){
-                        robot.preHangRoutine();
-                        robot.liftStateTimer.reset();
-                        preHangStarted = true;
-                    } else{
-                        robot.resetArmState();
-                        robot.resetLiftState();
-                        preHangStarted = false;
-                    }
-                }
-            }else backButtonPressed = false;
-
-            // Hang Routine
-            if (gamepad1.start){
+            // Cycle through hang off, pre-hang, and hang states. Cycle so that it can be deactivated in case it was started by mistake or something goes wrong.
+            if (gamepad1.start) {
                 if (!startButtonPressed) {
+                    robot.cycleHangState();
                     startButtonPressed = true;
-                    if (!hangStarted) {
-                        robot.hangRoutine();
-                        robot.liftStateTimer.reset();
-                        hangStarted = true;
-                    } else {
-                        robot.resetArmState();
-                        robot.resetLiftState();
-                        hangStarted = false;
-                    }
                 }
             } else startButtonPressed = false;
+
+            // Toggle Hold Position
+            if (gamepad1.back) {
+                if (!backButtonPressed) {
+                    robot.holdArm = !robot.holdArm;
+                    backButtonPressed = true;
+                }
+            } else backButtonPressed = false;
 
             /// This code needs updated. We probably don't want the wrist matching the arm angle all the time since it needs to reach back to the lift,
             /// however it might be nice to have it go to preset angles when the arm goes to presets
