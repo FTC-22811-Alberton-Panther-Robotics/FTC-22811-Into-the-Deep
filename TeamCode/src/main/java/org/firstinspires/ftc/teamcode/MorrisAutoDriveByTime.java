@@ -121,7 +121,7 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
             driveForTime(1.7, .5, 0, 0);
             // turns counterclockwise
             driveForTime(.65, 0, -0.5, 0);
-            //drives forward a bit
+            //drives forward a bit more
             // first sample
             driveForTime(.25, .5, 0, 0);
             // drives back to the left
