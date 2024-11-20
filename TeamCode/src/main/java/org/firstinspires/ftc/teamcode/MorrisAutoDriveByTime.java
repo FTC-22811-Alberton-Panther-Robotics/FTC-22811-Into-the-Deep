@@ -113,25 +113,39 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
 
         // Blue Alliance, Left start (closer to net zone / baskets)
         if(!isRedAlliance && isLeftStart){
-            // Strafe right for 1 second
+            // Strafe left for 2.2 second
             driveForTime(2.2, .01, 0, -.5);
-
-            // Drive diagonally to  for 2 second
-            driveForTime(.95, 0, 0, .6);
+            // Drive right
+            driveForTime(.88, 0, 0, .6);
             //drives forward a bit
-            driveForTime(1.6, .5, 0, 0);
-            // turns
-            driveForTime(.6, 0, -0.5, 0);
+            driveForTime(1.7, .5, 0, 0);
+            // turns counterclockwise
+            driveForTime(.65, 0, -0.5, 0);
             //drives forward a bit
-            driveForTime(.3, .5, 0, 0);
-            // drives back down
+            // first sample
+            driveForTime(.25, .5, 0, 0);
+            // drives back to the left
+            driveForTime(1.9, 0, 0, -0.5);
+            //drives back up
+            driveForTime(1.8, 0, 0, 0.5);
+            // second sample
+            //drives forward a little bit more
+            driveForTime(.28, .5, 0, 0);
+            // rotates a bit
+            driveForTime(.07, 0, -0.5, 0);
+            // drives to left
+            driveForTime(1.7, 0, 0, -0.5);
+            //drives back right
+            driveForTime(1.7, 0, 0, 0.5);
+            // third sample
+            // drive forward a little
+            driveForTime(.25, .5, 0, 0);
+            // turns a bit more
+            driveForTime(.1, 0, -0.5, 0);
+            // drive  down
             driveForTime(1.7, 0, 0, -0.5);
             //drives back up
             driveForTime(1.7, 0, 0, 0.5);
-            //drives forward a little bit more
-           // driveForTime(.01, .5, 0, 0);
-
-
             // Stop
             driveForTime(1, 0, 0, 0);
         }
