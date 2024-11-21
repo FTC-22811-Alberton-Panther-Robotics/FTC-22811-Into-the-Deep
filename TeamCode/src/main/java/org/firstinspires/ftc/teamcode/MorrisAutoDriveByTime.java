@@ -122,13 +122,15 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
             // turns counterclockwise
             driveForTime(.65, 0, -0.5, 0);
             //drives forward a bit more
-            // first sample
+
+            /// First Sample
             driveForTime(.25, .5, 0, 0);
             // drives back to the left
             driveForTime(1.9, 0, 0, -0.5);
             //drives back up
             driveForTime(1.8, 0, 0, 0.5);
-            // second sample
+
+            /// Second Sample
             //drives forward a little bit more
             driveForTime(.28, .5, 0, 0);
             // rotates a bit
@@ -137,7 +139,8 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
             driveForTime(1.7, 0, 0, -0.5);
             //drives back right
             driveForTime(1.7, 0, 0, 0.5);
-            // third sample
+
+            /// Third Sample
             // drive forward a little
             driveForTime(.25, .5, 0, 0);
             // turns a bit more
@@ -155,12 +158,12 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
     }
 
     /**
-    * @param time       Time in seconds to complete the action.
-    * @param forward     Fwd/Rev driving power (-1.0 to 1.0) +ve is forward
-    * @param turn       Turn speed (-1.0 to 1.0) +ve is right
-    * @param strafe     Right/Left strafing (-1.0 to 1.0) +ve is right
-    * This function is used for just turning.
-    */
+     * @param time       Time in seconds to complete the action.
+     * @param forward     Fwd/Rev driving power (-1.0 to 1.0) +ve is forward
+     * @param turn       Turn speed (-1.0 to 1.0) +ve is right
+     * @param strafe     Right/Left strafing (-1.0 to 1.0) +ve is right
+     * This function is used for just turning.
+     */
     private void driveForTime(double time, double forward, double turn, double strafe) {
         legNumber += 1;
         robot.mechanumDrive(forward, strafe, turn);
@@ -192,7 +195,7 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
                 dpadDownPressed = false;
                 selection += 1;
                 selection = selection % SELECTION_COUNT; // cycles around to beginning of list after the end
-                                                         // % means the remainder after dividing
+                // % means the remainder after dividing
             }
 
             if(gamepad1.dpad_up) dpadUpPressed = true;
@@ -247,7 +250,4 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
         telemetry.addData(">", "Autonomous Configuration Complete.  Press Play to start OpMode.");
         telemetry.update();
     }
-
-
-
 }
