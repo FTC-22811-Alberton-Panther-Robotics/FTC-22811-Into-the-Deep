@@ -243,9 +243,9 @@ public class CompetitionTeleop extends LinearOpMode {
 //            telemetry.addData("Strafe Power", "%.2f", strafe);
 //            telemetry.addData("Turn Power",  "%.2f", turn);
             telemetry.addData("Gripper Position",  "%.2f", robot.getGripperPosition());
-            telemetry.addData("Wrist Position", "%.2f", robot.getWristPosition());
-            telemetry.addData("Wrist Angle", "%.2f", robot.getWristAngle());
-            telemetry.addData("Arm Position Index", robot.armPositionIndex);
+//            telemetry.addData("Wrist Position", "%.2f", robot.getWristPosition());
+//            telemetry.addData("Wrist Angle", "%.2f", robot.getWristAngle());
+//            telemetry.addData("Arm Position Index", robot.armPositionIndex);
             telemetry.addData("Arm Angle Preset Target", robot.ARM_ANGLES[robot.armPositionIndex]);
             telemetry.addData("Arm Angle Relative to Zero", "%.2f",robot.getArmAngleRelativeToZero());
             telemetry.addData("Arm Target Angle", "%.2f",robot.getArmTargetAngle());
@@ -254,6 +254,12 @@ public class CompetitionTeleop extends LinearOpMode {
             telemetry.addData("Arm State", robot.getArmState());
             telemetry.addData("Arm Current (Amps)", robot.getArmCurrentAmps());
             telemetry.addData("Lift State", robot.getLiftState());
+            telemetry.addData("Lift Position Index", robot.liftPositionIndex);
+            telemetry.addData("Lift Target Position", robot.LIFT_POSITIONS[robot.liftPositionIndex]);
+            telemetry.addData("Left Lift Position", robot.getLeftLiftPosition());
+            telemetry.addData("Right Lift Position", robot.getRightLiftPosition());
+            telemetry.addData("Left Lift Position Inches", robot.getLeftLiftPositionInches());
+            telemetry.addData("Right Lift Position Inches", robot.getRightLiftPositionInches());
             telemetry.addData("Left Lift Current (Amps)",robot.getLiftLeftCurrentAmps());
             telemetry.addData("Right Lift Current (Amps", robot.getLiftRightCurrentAmps());
             telemetry.addData("Runtime", "%.2f",runtime.seconds());

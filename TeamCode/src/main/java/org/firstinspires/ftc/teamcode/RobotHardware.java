@@ -31,6 +31,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -85,7 +86,7 @@ public class RobotHardware {
     private Servo   gripper = null;
 
     // General Constants
-    private static final double     MAX_CURRENT_AMPS        = 6;
+
 
     // Drivetrain Constants
     // Calculate the COUNTS_PER_INCH for your specific drive train.
@@ -109,7 +110,7 @@ public class RobotHardware {
     private static final int ARM_INCREMENT_DEGREES = 10, ARM_ROTATE_MAX = 160, ARM_ROTATE_MIN = -20, ARM_ROTATE_ENCODER_RESOLUTION = 28, ARM_ROTATE_GEAR_RATIO = 60, // Straight forward defined as 0 degrees
             ARM_STARTING_ANGLE_OFFSET = ARM_ROTATE_MAX, ARM_STOW = ARM_STARTING_ANGLE_OFFSET, ARM_INTAKE = 0, CHAMBER_SCORE = 70, ARM_OUTTAKE = 130;
     public final double[] ARM_ANGLES = {ARM_STOW, ARM_OUTTAKE, CHAMBER_SCORE, ARM_INTAKE, ARM_ROTATE_MIN};
-
+    private static final double ARM_MAX_CURRENT_AMPS = 6;
     // Create state machines to track what state the arm and lift motors are in. A state machine is a computational model that represents a system
     // with a finite number of states and transitions between those states. It's a powerful tool for managing complex logic and behavior,
     // especially in systems with dynamic or event-driven interactions. Check out the updateArmState and updateLiftState functions to see how this works.
@@ -124,9 +125,11 @@ public class RobotHardware {
     // Lift Constants
     private static final long LIFT_POSITION_TIMEOUT = 3000;
     private static final int LIFT_ENCODER_RESOLUTION = 28, LIFT_GEAR_RATIO = 20;
-    private static final double LIFT_TRAVEL_PER_ROTATION_INCHES = 120 / 25.4, LIFT_EXTEND_INCREMENT_INCHES = 0.50, LIFT_RETRACT_INCREMENT_INCHES = -0.50;
+    private static final double LIFT_TRAVEL_PER_ROTATION_INCHES = 120 / 25.4, LIFT_INCREMENT_INCHES = 1;
     private static final double LIFT_FULLY_RETRACTED = 0, LOW_TO_HIGH_RUNG = 16, LOW_RUNG = 20, LOW_BASKET = 25.75, HIGH_BASKET = 43, LIFT_3_STAGE_EXTENDED = 28.8;
     public final double[] LIFT_POSITIONS = {LIFT_FULLY_RETRACTED, LOW_RUNG, LOW_BASKET, HIGH_BASKET, LIFT_3_STAGE_EXTENDED};
+    private static final double LIFT_MAX_CURRENT_AMPS = 4;
+
     // Lift Variables
     public int liftPositionIndex = 0;
     private int liftTargetPosition = 0;
@@ -172,6 +175,9 @@ public class RobotHardware {
         leftRearDrive.setDirection(DcMotor.Direction.REVERSE);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightRearDrive.setDirection(DcMotor.Direction.FORWARD);
+        arm.setDirection(DcMotorSimple.Direction.FORWARD);
+        leftLift.setDirection(DcMotorSimple.Direction.FORWARD);
+        rightLift.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Reset encoders at start of program
         leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -303,7 +309,7 @@ public class RobotHardware {
                     armCurrentState = ArmState.TIMEOUT;
                     armStateTimer.reset();
                 }
-                else if (armEx.getCurrent(CurrentUnit.AMPS) > MAX_CURRENT_AMPS){
+                else if (armEx.getCurrent(CurrentUnit.AMPS) > ARM_MAX_CURRENT_AMPS){
                     armCurrentState = ArmState.STALLED;
                     armStateTimer.reset();
                 }
@@ -324,7 +330,7 @@ public class RobotHardware {
                 armTargetPosition = arm.getCurrentPosition();
                 arm.setPower(0);
                 arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                if (armStateTimer.seconds() > 1 && armEx.getCurrent(CurrentUnit.AMPS) < MAX_CURRENT_AMPS) armCurrentState = ArmState.IDLE;
+                if (armStateTimer.seconds() > 1 && armEx.getCurrent(CurrentUnit.AMPS) < ARM_MAX_CURRENT_AMPS) armCurrentState = ArmState.IDLE;
                 break;
             case TIMEOUT:
                 armTargetPosition = arm.getCurrentPosition();
@@ -417,16 +423,18 @@ public class RobotHardware {
                 rightLift.setTargetPosition(liftTargetPosition);
                 leftLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 rightLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                leftLiftEx.setVelocity(1000);
+                rightLiftEx.setVelocity(1000);
                 if (hangStateTimer.seconds() > LIFT_POSITION_TIMEOUT) {
                     liftCurrentState = LiftState.TIMEOUT;
                     hangStateTimer.reset();
                 }
-                else if (leftLiftEx.getCurrent(CurrentUnit.AMPS) > MAX_CURRENT_AMPS){
+                else if (leftLiftEx.getCurrent(CurrentUnit.AMPS) > ARM_MAX_CURRENT_AMPS){
                     liftCurrentState = LiftState.STALLED;
                     hangStateTimer.reset();
                 }
                 else if (!leftLift.isBusy()) {
-                    liftCurrentState = LiftState.HOLDING_POSITION;
+                    liftCurrentState = LiftState.IDLE;
                 }
                 break;
             // The moving down state is different from the hang routine because it is not expecting much resistance on the motors until it hits
@@ -440,7 +448,7 @@ public class RobotHardware {
                     liftCurrentState = LiftState.TIMEOUT;
                     hangStateTimer.reset();
                 }
-                else if (leftLiftEx.getCurrent(CurrentUnit.AMPS) > MAX_CURRENT_AMPS){
+                else if (leftLiftEx.getCurrent(CurrentUnit.AMPS) > LIFT_MAX_CURRENT_AMPS){
                     liftCurrentState = LiftState.STALLED;
                     leftLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     rightLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -458,8 +466,8 @@ public class RobotHardware {
                 rightLift.setPower(0);
                 leftLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                 rightLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                if (hangStateTimer.seconds() > 1 && leftLiftEx.getCurrent(CurrentUnit.AMPS) < MAX_CURRENT_AMPS
-                        && rightLiftEx.getCurrent(CurrentUnit.AMPS) < MAX_CURRENT_AMPS) liftCurrentState = LiftState.IDLE;
+                if (hangStateTimer.seconds() > 1 && leftLiftEx.getCurrent(CurrentUnit.AMPS) < LIFT_MAX_CURRENT_AMPS
+                        && rightLiftEx.getCurrent(CurrentUnit.AMPS) < LIFT_MAX_CURRENT_AMPS) liftCurrentState = LiftState.IDLE;
                 break;
             case TIMEOUT:
                 liftTargetPosition = leftLift.getCurrentPosition(); // pick the left lift, either will do - hopefully they're pretty much the same anyway but the other states will take care of that if they are.
@@ -481,18 +489,29 @@ public class RobotHardware {
         this.leftLiftDistanceToTarget = targetPosition - leftLift.getCurrentPosition();
         this.rightLiftDistanceToTarget = targetPosition - rightLift.getCurrentPosition();
     }
+    public int getLeftLiftPosition(){
+        return leftLift.getCurrentPosition();
+    }
+    public int getLeftLiftPositionInches(){
+        return calculateLiftInchesFromEncoderPosition(leftLift.getCurrentPosition());
+    }
+    public int getRightLiftPosition(){
+        return rightLift.getCurrentPosition();
+    }
+    public int getRightLiftPositionInches(){
+        return calculateLiftInchesFromEncoderPosition(rightLift.getCurrentPosition());
+    }
+    public int getLiftTargetPosition(){
+        return liftTargetPosition;
+    }
     public void setLiftPositionInches(double targetPositionInches) {
         setLiftPosition(calculateEncoderPositionFromLiftInches(targetPositionInches));
     }
     public void liftIncrementInches(){
-        if (getLiftExtensionInches() < LIFT_3_STAGE_EXTENDED) {
-            setLiftPositionInches(getLiftExtensionInches() + LIFT_EXTEND_INCREMENT_INCHES);
-        }
+        setLiftPositionInches(getLeftLiftPositionInches() + LIFT_INCREMENT_INCHES);
     }
     public void liftDecrementInches(){
-        if (getLiftExtensionInches() > LIFT_FULLY_RETRACTED) {
-            setLiftPositionInches(getLiftExtensionInches() - LIFT_RETRACT_INCREMENT_INCHES);
-        }
+        setLiftPositionInches(getLeftLiftPositionInches() - LIFT_INCREMENT_INCHES);
     }
     private int calculateLiftInchesFromEncoderPosition(int encoderPosition) {
         int ticksPerRevolution = LIFT_ENCODER_RESOLUTION * LIFT_GEAR_RATIO;
@@ -503,9 +522,6 @@ public class RobotHardware {
         int ticksPerRevolution = LIFT_ENCODER_RESOLUTION * LIFT_GEAR_RATIO;
         double inchesPerTick = LIFT_TRAVEL_PER_ROTATION_INCHES / ticksPerRevolution;
         return (int) (liftInches / inchesPerTick);
-    }
-    public double getLiftExtensionInches(){
-        return calculateLiftInchesFromEncoderPosition(leftLift.getCurrentPosition());
     }
     // Public method that Opmodes can call to get what state the lift is in
     public LiftState getLiftState(){
@@ -598,12 +614,12 @@ public class RobotHardware {
         gripper.setPosition(position);
     }
     public void gripperIncrement(){
-        if (gripper.getPosition() < GRIPPER_MAX) {
+        if (gripper.getPosition() + GRIPPER_INCREMENT <= 1) {
             setGripperPosition(gripper.getPosition() + GRIPPER_INCREMENT);
         }
     }
     public void gripperDecrement(){
-        if (gripper.getPosition() > GRIPPER_MIN){
+        if (gripper.getPosition() - GRIPPER_INCREMENT >= 0) {
             setGripperPosition((gripper.getPosition() - GRIPPER_INCREMENT));
         }
     }
