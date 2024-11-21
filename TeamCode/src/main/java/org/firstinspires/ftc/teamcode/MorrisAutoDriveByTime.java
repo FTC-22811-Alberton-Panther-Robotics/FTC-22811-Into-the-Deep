@@ -126,31 +126,39 @@ public class MorrisAutoDriveByTime extends LinearOpMode {
             /// First Sample
             driveForTime(.25, .5, 0, 0);
             // drives back to the left
-            driveForTime(1.9, 0, 0, -0.5);
+            driveForTime(2, 0, 0, -0.5);
             //drives back up
-            driveForTime(1.8, 0, 0, 0.5);
+            driveForTime(1.55, 0, 0, 0.5);
 
             /// Second Sample
             //drives forward a little bit more
-            driveForTime(.28, .5, 0, 0);
+            driveForTime(.27, .5, 0, 0);
             // rotates a bit
             driveForTime(.07, 0, -0.5, 0);
             // drives to left
-            driveForTime(1.7, 0, 0, -0.5);
+            driveForTime(1.8, 0, 0, -0.5);
             //drives back right
-            driveForTime(1.7, 0, 0, 0.5);
+            driveForTime(2.1, 0, 0, 0.5);
 
             /// Third Sample
             // drive forward a little
-            driveForTime(.25, .5, 0, 0);
+            driveForTime(.3, .5, 0, 0);
             // turns a bit more
             driveForTime(.1, 0, -0.5, 0);
             // drive  down
-            driveForTime(1.7, 0, 0, -0.5);
+            driveForTime(1.9, 0, 0, -0.5);
             //drives back up
             driveForTime(1.7, 0, 0, 0.5);
+
+            ///drives to rim
+            //driveForTime(1,-.5,0,0);
+
+
             // Stop
             driveForTime(1, 0, 0, 0);
+
+
+
         }
         telemetry.addData("Path", "Complete");
         telemetry.update();
