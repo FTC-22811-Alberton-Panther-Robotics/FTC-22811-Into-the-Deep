@@ -49,7 +49,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Autonomous(name="Robot: Auto Drive By Time", group="Auto", preselectTeleOp = "CompetitionTeleop")
 //@Disabled
-public class MorrisAutoDriveByTime extends LinearOpMode {
+public class CompetitionAutoDriveByTime extends LinearOpMode {
 
     // Create a org.firstinspires.ftc.teamcode.RobotHardware object to be used to access robot hardware.
     // Prefix any hardware functions with "robot." to access this class.
