@@ -84,7 +84,7 @@ public class CompetitionTeleop extends LinearOpMode {
         double forward;
         double turn;
         double strafe;
-        double aLastTime = 0, bLastTime = 0, xLastTime = 0, yLastTime = 0, rBLastTime = 0, lBLastTime = 0, dPadUpLastTime = 0, dpadDownLastTime = 0, rightTriggerLastTime = 0, leftTriggerLastTime = 0;
+        double brake = 0, aLastTime = 0, bLastTime = 0, xLastTime = 0, yLastTime = 0, rBLastTime = 0, lBLastTime = 0, dPadUpLastTime = 0, dpadDownLastTime = 0, rightTriggerLastTime = 0, leftTriggerLastTime = 0;
         boolean aButtonPressed = false, bButtonPressed = false, xButtonPressed = false, yButtonPressed = false, dPadUpPressed = false, dPadDownPressed = false, dPadLeftPressed = false, dPadRightPressed = false,
                 rightTriggerPressed = false, leftTriggerPressed = false, backButtonPressed = false, startButtonPressed = false, preHangStarted = false, hangStarted = false;
         final double BUTTON_PRESS_DELAY = .075;// seconds, keep track of how long a button has been pressed and allow for a quick press to move a servo a small amount while a long press moves the servo a longer distance.
@@ -113,9 +113,10 @@ public class CompetitionTeleop extends LinearOpMode {
 
             /// Mr. Morris: Alternatively we could use right trigger for forward, left trigger for reverse, left_stick_x for strafing and right_stick_x for turning,
             ///             then left/right stick_y could be free for arms or something
-            forward = -gamepad1.left_stick_y;
-            strafe = gamepad1.left_stick_x;
-            turn = gamepad1.right_stick_x;
+            brake = gamepad1.right_stick_y;
+            forward = -gamepad1.left_stick_y - brake;
+            strafe = gamepad1.left_stick_x - brake;
+            turn = gamepad1.right_stick_x - brake;
 
             // Combine forward and turn for blended motion. Use org.firstinspires.ftc.teamcode.RobotHardware class
             robot.mechanumDrive(forward, strafe, turn);
