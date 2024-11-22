@@ -183,17 +183,17 @@ public class CompetitionTeleop extends LinearOpMode {
             if (gamepad1.dpad_right) {
                 if (!dPadRightPressed && robot.liftPositionIndex < robot.LIFT_POSITIONS.length - 1) {
                     robot.liftPositionIndex = robot.liftPositionIndex + 1;
-                    robot.setLiftPositionInches(robot.LIFT_POSITIONS[robot.liftPositionIndex]);
                     dPadRightPressed = true;
                 }
+                robot.setLiftPositionInches(robot.LIFT_POSITIONS[robot.liftPositionIndex]);
             } else dPadRightPressed = false;
             // Go to next lower lift height preset
             if (gamepad1.dpad_left) {
                 if (!dPadLeftPressed && robot.liftPositionIndex > 0) {
                     robot.liftPositionIndex = robot.liftPositionIndex - 1;
-                    robot.setLiftPositionInches(robot.LIFT_POSITIONS[robot.liftPositionIndex]);
                     dPadLeftPressed = true;
                 }
+                robot.setLiftPositionInches(robot.LIFT_POSITIONS[robot.liftPositionIndex]);
             } else dPadLeftPressed = false;
 
             // Use gamepad Dpad up and down buttons to extend and retract the slides by a preset amount.
@@ -255,7 +255,8 @@ public class CompetitionTeleop extends LinearOpMode {
             telemetry.addData("Arm Current (Amps)", robot.getArmCurrentAmps());
             telemetry.addData("Lift State", robot.getLiftState());
             telemetry.addData("Lift Position Index", robot.liftPositionIndex);
-            telemetry.addData("Lift Target Position", robot.LIFT_POSITIONS[robot.liftPositionIndex]);
+            telemetry.addData("Lift Preset Target Position", robot.LIFT_POSITIONS[robot.liftPositionIndex]);
+            telemetry.addData("Lift Target Position", robot.getLiftTargetPosition());
             telemetry.addData("Left Lift Position", robot.getLeftLiftPosition());
             telemetry.addData("Right Lift Position", robot.getRightLiftPosition());
             telemetry.addData("Left Lift Position Inches", robot.getLeftLiftPositionInches());
