@@ -126,7 +126,7 @@ public class RobotHardware {
     private static final long LIFT_POSITION_TIMEOUT = 3000;
     private static final int LIFT_ENCODER_RESOLUTION = 28, LIFT_GEAR_RATIO = 20;
     private static final double LIFT_TRAVEL_PER_ROTATION_INCHES = 120 / 25.4, LIFT_INCREMENT_INCHES = 1;
-    private static final double LIFT_FULLY_RETRACTED = 0, LOW_TO_HIGH_RUNG = 16, LOW_RUNG = 20, LOW_BASKET = 25.75, HIGH_BASKET = 43, LIFT_3_STAGE_EXTENDED = 28.8;
+    private static final double LIFT_FULLY_RETRACTED = 17.5, LOW_TO_HIGH_RUNG = 16 + LIFT_FULLY_RETRACTED, LOW_RUNG = 20, LOW_BASKET = 25.75, HIGH_BASKET = 43, LIFT_3_STAGE_EXTENDED = 28.8 + LIFT_FULLY_RETRACTED;
     public final double[] LIFT_POSITIONS = {LIFT_FULLY_RETRACTED, LOW_RUNG, LOW_BASKET, HIGH_BASKET, LIFT_3_STAGE_EXTENDED};
     private static final double LIFT_MAX_CURRENT_AMPS = 4;
 
@@ -454,7 +454,7 @@ public class RobotHardware {
                     rightLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     hangStateTimer.reset();
                 }
-                else if (!leftLift.isBusy()) {
+                else if (!leftLift.isBusy() && !rightLift.isBusy()) {
                     liftCurrentState = LiftState.IDLE;
                 }
                 break;
@@ -516,12 +516,12 @@ public class RobotHardware {
     private int calculateLiftInchesFromEncoderPosition(int encoderPosition) {
         int ticksPerRevolution = LIFT_ENCODER_RESOLUTION * LIFT_GEAR_RATIO;
         double inchesPerTick = LIFT_TRAVEL_PER_ROTATION_INCHES / ticksPerRevolution;
-        return (int) (encoderPosition * inchesPerTick);
+        return (int) ((encoderPosition * inchesPerTick) + LIFT_FULLY_RETRACTED);
     }
     private int calculateEncoderPositionFromLiftInches(double liftInches) {
         int ticksPerRevolution = LIFT_ENCODER_RESOLUTION * LIFT_GEAR_RATIO;
         double inchesPerTick = LIFT_TRAVEL_PER_ROTATION_INCHES / ticksPerRevolution;
-        return (int) (liftInches / inchesPerTick);
+        return (int) ((liftInches - LIFT_FULLY_RETRACTED) / inchesPerTick);
     }
     // Public method that Opmodes can call to get what state the lift is in
     public LiftState getLiftState(){
@@ -544,7 +544,6 @@ public class RobotHardware {
                 resetArmState();
                 resetLiftState();
                 hangCurrentState = HangState.NONE;
-                hangStateTimer.reset();
                 break;
             // need to finish hang routine - this won't look for a stall condition, or at least it will have a higher max current allowed as it's expected that the motors will have to work hard to lift the whole robot.
             case PRE_HANG:
@@ -553,6 +552,7 @@ public class RobotHardware {
                 armCurrentState = ArmState.STOW;
                 leftLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 rightLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                hangStateTimer.reset();
                 break;
             case HANG_ONE:
                 leftLift.setTargetPosition(calculateEncoderPositionFromLiftInches(LIFT_FULLY_RETRACTED));
@@ -595,6 +595,7 @@ public class RobotHardware {
             case HANG_COMPLETE:
                 break;
             case NONE:
+                hangStateTimer.reset();
                 break;
         }
     }
