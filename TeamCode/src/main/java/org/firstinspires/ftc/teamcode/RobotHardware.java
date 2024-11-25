@@ -107,20 +107,20 @@ public class RobotHardware {
 
     // Arm Constants
     private static final long ARM_POSITION_TIMEOUT = 3000;
-    private static final int ARM_INCREMENT_DEGREES = 10, ARM_ROTATE_MAX = 160, ARM_ROTATE_MIN = -20, ARM_ROTATE_ENCODER_RESOLUTION = 28, ARM_ROTATE_GEAR_RATIO = 60, // Straight forward defined as 0 degrees
-            ARM_STARTING_ANGLE_OFFSET = ARM_ROTATE_MAX, ARM_STOW = ARM_STARTING_ANGLE_OFFSET, ARM_INTAKE = 0, CHAMBER_SCORE = 70, ARM_OUTTAKE = 130;
-    public final double[] ARM_ANGLES = {ARM_STOW, ARM_OUTTAKE, CHAMBER_SCORE, ARM_INTAKE, ARM_ROTATE_MIN};
-    private static final double ARM_MAX_CURRENT_AMPS = 6;
+    private static final int ARM_INCREMENT_DEGREES = 5, ARM_ROTATE_MAX = 160, ARM_ROTATE_MIN = -20, ARM_ROTATE_ENCODER_RESOLUTION = 28, ARM_ROTATE_GEAR_RATIO = 60, // Straight forward defined as 0 degrees
+            ARM_STARTING_ANGLE_OFFSET = 120, ARM_STOW = ARM_STARTING_ANGLE_OFFSET, ARM_INTAKE = 0, SPECIMEN_INTAKE = 30, CHAMBER_SCORE = 70, ARM_OUTTAKE = 100;
+    public final double[] ARM_ANGLES = {ARM_STOW, ARM_OUTTAKE, CHAMBER_SCORE, SPECIMEN_INTAKE, ARM_INTAKE, ARM_ROTATE_MIN};
+    private static final double ARM_MAX_CURRENT_AMPS = 7;
     // Create state machines to track what state the arm and lift motors are in. A state machine is a computational model that represents a system
     // with a finite number of states and transitions between those states. It's a powerful tool for managing complex logic and behavior,
     // especially in systems with dynamic or event-driven interactions. Check out the updateArmState and updateLiftState functions to see how this works.
-    private enum ArmState {IDLE, MOVING_TO_TARGET, HOLDING_POSITION, STALLED, TIMEOUT, STOW, ERROR}
+    public enum ArmState {IDLE, MOVING_TO_TARGET, HOLDING_POSITION, STALLED, TIMEOUT, STOW, ERROR}
     private ArmState armCurrentState = ArmState.IDLE;
     ElapsedTime armStateTimer = new ElapsedTime();
     // Arm Variables
     public int armPositionIndex = 0;
     private int armTargetPosition = 0;
-    public boolean holdArm = false; // consider triggering the hold behavior in the opMode with a button press. TRUE: maintain arm power after RUN_TO_POSITION is complete, FALSE: stop arm power
+    public boolean holdArm = true; // consider triggering the hold behavior in the opMode with a button press. TRUE: maintain arm power after RUN_TO_POSITION is complete, FALSE: stop arm power
 
     // Lift Constants
     private static final long LIFT_POSITION_TIMEOUT = 3000;
@@ -136,7 +136,7 @@ public class RobotHardware {
     private int leftLiftDistanceToTarget =0;
     private int rightLiftDistanceToTarget =0;
     private enum LiftState {IDLE, MOVING_UP, MOVING_DOWN, HOLDING_POSITION, STALLED, TIMEOUT, ERROR}
-    private LiftState liftCurrentState = LiftState.IDLE;
+    public LiftState liftCurrentState = LiftState.IDLE;
     private enum HangState {RESET, PRE_HANG, HANG_ONE, HANG_TWO, HANG_THREE, HANG_COMPLETE, NONE};
     private HangState hangCurrentState = HangState.NONE;
     private int hangIndex = 0;

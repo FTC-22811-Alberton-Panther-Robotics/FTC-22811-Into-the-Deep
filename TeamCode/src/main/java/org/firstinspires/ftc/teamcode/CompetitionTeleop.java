@@ -31,6 +31,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 
 /*
@@ -113,10 +114,10 @@ public class CompetitionTeleop extends LinearOpMode {
 
             /// Mr. Morris: Alternatively we could use right trigger for forward, left trigger for reverse, left_stick_x for strafing and right_stick_x for turning,
             ///             then left/right stick_y could be free for arms or something
-            brake = gamepad1.right_stick_y;
-            forward = -gamepad1.left_stick_y - brake;
-            strafe = gamepad1.left_stick_x - brake;
-            turn = gamepad1.right_stick_x - brake;
+            brake = Range.clip(gamepad1.right_stick_y, -1, 0);
+            forward = -gamepad1.left_stick_y * (1 - brake);
+            strafe = gamepad1.left_stick_x * (1 - brake);
+            turn = gamepad1.right_stick_x * (1 - brake);
 
             // Combine forward and turn for blended motion. Use org.firstinspires.ftc.teamcode.RobotHardware class
             robot.mechanumDrive(forward, strafe, turn);
@@ -155,19 +156,28 @@ public class CompetitionTeleop extends LinearOpMode {
             } else xButtonPressed = false;
 
             // Use gamepad buttons to rotate arm forward/down (dpad down) and back/up (dpad up)
-            if (gamepad1.b) {
-                if (!bButtonPressed) {
-                    robot.armAngleIncrement();
-                    bButtonPressed = true;
-                }
-            } else bButtonPressed = false;
+//            if (gamepad1.b) {
+//                if (!bButtonPressed) {
+//                    robot.armAngleIncrement();
+//                    bButtonPressed = true;
+//                }
+//            } else bButtonPressed = false;
+//
+//            if (gamepad1.a) {
+//                if (!aButtonPressed) {
+//                    robot.armAngleDecrement();
+//                    aButtonPressed = true;
+//                }
+//            } else aButtonPressed = false;
+            if (gamepad1.a && runtime.seconds() - aLastTime > BUTTON_PRESS_DELAY) {
+                robot.armAngleIncrement();
+                aLastTime = runtime.seconds();
+            }
+            if (gamepad1.b && runtime.seconds() - bLastTime > BUTTON_PRESS_DELAY) {
+                robot.armAngleDecrement();
+                bLastTime = runtime.seconds();
+            }
 
-            if (gamepad1.a) {
-                if (!aButtonPressed) {
-                    robot.armAngleDecrement();
-                    aButtonPressed = true;
-                }
-            } else aButtonPressed = false;
 
             // Use trigger buttons to rotate wrist up (right trigger) and down (left trigger)
             if (gamepad1.right_trigger > 0.1 && runtime.seconds() - rightTriggerLastTime > BUTTON_PRESS_DELAY) {

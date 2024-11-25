@@ -47,7 +47,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  *   otherwise you would use: RobotAutoDriveByEncoder;
  */
 
-@Autonomous(name="Auto Drive By Time", group="Auto", preselectTeleOp = "CompetitionTeleop")
+@Autonomous(name="Auto Drive By Time", group="Auto", preselectTeleOp = "TeleopAlternateButtonConfiguration")
 //@Disabled
 public class CompetitionAutoDriveByTime extends LinearOpMode {
 
@@ -74,49 +74,162 @@ public class CompetitionAutoDriveByTime extends LinearOpMode {
 
         ElapsedTime runTime = new ElapsedTime();
         while(runTime.seconds() < startingPause && opModeIsActive()); // do nothing during starting pause period
-
+        robot.updateArmState();
         // Red Alliance, Right start (closer to observation zone / human player)
-        if(isRedAlliance && !isLeftStart) {
-            // Drive forward for 1 second
-            driveForTime(1, .6, 0, 0);
+        if (isRedAlliance && !isLeftStart) {
+            // Strafe right for 2.2 second
+            driveForTime(2.2, .01, 0, .5);
+            // Drive left
+            driveForTime(.88, 0, 0, -.6);
+            //drives forward a bit
+            driveForTime(1.7, .5, 0, 0);
+            // turns clockwise
+            driveForTime(.67, 0, 0.5, 0);
+            //drives forward a bit more
 
-            // Spin right for .8 seconds - this should perform a nearly perfect 90 degree turn
-            driveForTime(.8, 0, .5, 0);
+            /// First Sample
+            // drives back to the right
+            driveForTime(2, 0, 0, 0.5);
+            //drives back to left
+            driveForTime(2, 0, 0, -0.5);
+
+            /// Second Sample
+            //drives forward a little bit more
+            driveForTime(.27, .5, 0, 0);
+            // rotates clockwise
+            driveForTime(.07, 0, 0.5, 0);
+            // drives to right
+            driveForTime(1.8, 0, 0, 0.5);
+            //drives back left
+            driveForTime(2, 0, 0, -0.5);
+
+            /// Third Sample
+            // drive forward a little
+            driveForTime(.3, .5, 0, 0);
+            // turns clockwise a bit more
+            driveForTime(.1, 0, 0.5, 0);
+            // drive  right
+            driveForTime(1.9, 0, 0, 0.5);
+            //drives left
+            driveForTime(1.8, 0, 0, -0.5);
+
+            ///drives to rung
+            driveForTime(1,-.5,0,0);
 
             // Stop
             driveForTime(1, 0, 0, 0);
+            robot.setWristPosition(.2);
+            robot.setArmAngle(50);
+           while (robot.getArmState() != RobotHardware.ArmState.HOLDING_POSITION && opModeIsActive()){
+                robot.updateArmState();
+            }
         }
 
         // Blue Alliance, Right start (closer to observation zone / human player)
-        if(!isRedAlliance && !isLeftStart) {
-            // Strafe right for 1 second
-            driveForTime(1, 0, 0, .5);
+        if (!isRedAlliance && !isLeftStart) {
+           driveForTime(.1, .01, 0, 0);
+            // Strafe right for 2.2 second
+            driveForTime(2.2, .01, 0, .5);
+            // Drive left
+            driveForTime(.88, 0, 0, -.6);
+            //drives forward a bit
+            driveForTime(1.7, .5, 0, 0);
+            // turns clockwise
+            driveForTime(.67, 0, 0.5, 0);
+            //drives forward a bit more
 
-            // Drive diagonally to left for 2 second
-            driveForTime(1, .3, 0, .3);
+            /// First Sample
+            // drives back to the right
+            driveForTime(2, 0, 0, 0.5);
+            //drives back to left
+            driveForTime(2, 0, 0, -0.5);
+
+            /// Second Sample
+            //drives forward a little bit more
+            driveForTime(.4, .5, 0, 0);
+            // rotates clockwise
+            driveForTime(.07, 0, 0.5, 0);
+            // drives to right
+            driveForTime(1.8, 0, 0, 0.5);
+            //pause?
+            driveForTime(0, 0, 0, 0);
+            //drives back left
+            driveForTime(2, 0, 0, -0.5);
+
+            /// Third Sample
+            // drive forward a little
+            driveForTime(.4, .5, 0, 0);
+//            // turns clockwise a bit more
+            driveForTime(.1, 0, 0.5, 0);
+//            // drive  right
+            driveForTime(1.9, 0, 0, 0.5);
+//            //drives left
+            driveForTime(1.8, 0, 0, -0.5);
+
+            ///drives to rung
+            //turns 180
+            driveForTime(.9, 0, .9, 0);
+
+            driveForTime(1, .5, 0, 0);
+
 
             // Stop
             driveForTime(1, 0, 0, 0);
         }
 
         // Red Alliance, Left start (closer to net zone / baskets)
-        if(isRedAlliance && isLeftStart){
-            // Drive backward for 1 second
-            driveForTime(1, -.5, 0, 0);
+        if (isRedAlliance && isLeftStart) {
+            // 1: Strafe left for 2.2 second
+            driveForTime(2.2, .01, 0, -.5);
+            // 2: Drive right
+            driveForTime(.88, 0, 0, .6);
+            // 3: drives forward a bit
+            driveForTime(1.7, .5, 0, 0);
+            // 4: turns counterclockwise
+            driveForTime(.65,0,-0.5,0);
 
-            // Drive in a tight arc to the left for 1.5 seconds
-            driveForTime(1.5, .5, -1, 0);
+            /// First Sample
+            // 5: Drive forward
+            driveForTime(.25, .5, 0, 0);
+            // 6: drives back to the left
+            driveForTime(2, 0, 0, -0.5);
+            // 7: drives back up
+            driveForTime(2, 0, 0, 0.5);
+
+            /// Second Sample
+            // 8: drives forward a little bit more
+            driveForTime(.27, .5, 0, 0);
+            // 9: rotates a bit
+            driveForTime(.1, 0, -0.5, 0);
+            // 10: drives to left
+            driveForTime(1.8, 0, 0, -0.5);
+            // 11: drives back right
+            driveForTime(2.1, 0, 0, 0.5);
+
+            /// Third Sample
+            // 12: drive forward a little
+            driveForTime(.3, .5, 0, 0);
+            // 13: turns a bit more
+            driveForTime(.1, 0, -0.5, 0);
+            // 14: drive  down
+            driveForTime(1.9, 0, 0, -0.5);
+            // 15: drives back up
+            driveForTime(1.9, 0, 0, 0.5);
+
+            ///drives to rung
+            // 16:
+            driveForTime(1, -.5, 0, 0);
 
             // Stop
             driveForTime(1, 0, 0, 0);
         }
 
         // Blue Alliance, Left start (closer to net zone / baskets)
-        if(!isRedAlliance && isLeftStart){
+        if (!isRedAlliance && isLeftStart) {
             // Strafe left for 2.2 second
             driveForTime(2.2, .01, 0, -.5);
             // Drive right
-            driveForTime(.88, 0, 0, .6);
+            driveForTime(.9, 0, 0, .6);
             //drives forward a bit
             driveForTime(1.7, .5, 0, 0);
             // turns counterclockwise
@@ -124,7 +237,7 @@ public class CompetitionAutoDriveByTime extends LinearOpMode {
             //drives forward a bit more
 
             /// First Sample
-            driveForTime(.25, .5, 0, 0);
+            driveForTime(.2, .5, 0, 0);
             // drives back to the left
             driveForTime(2, 0, 0, -0.5);
             //drives back up
@@ -132,7 +245,7 @@ public class CompetitionAutoDriveByTime extends LinearOpMode {
 
             /// Second Sample
             //drives forward a little bit more
-            driveForTime(.27, .5, 0, 0);
+            driveForTime(.28, .5, 0, 0);
             // rotates a bit
             driveForTime(.07, 0, -0.5, 0);
             // drives to left
@@ -150,14 +263,11 @@ public class CompetitionAutoDriveByTime extends LinearOpMode {
             //drives back up
             driveForTime(1.7, 0, 0, 0.5);
 
-            ///drives to rim
-            //driveForTime(1,-.5,0,0);
-
+            ///drives to rung
+            driveForTime(1, -.5, 0, 0);
 
             // Stop
             driveForTime(1, 0, 0, 0);
-
-
 
         }
         telemetry.addData("Path", "Complete");

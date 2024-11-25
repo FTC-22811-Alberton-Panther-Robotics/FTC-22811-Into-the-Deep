@@ -114,9 +114,9 @@ public class TeleopAlternateButtonConfiguration extends LinearOpMode {
             /// Mr. Morris: Add brake functionality by holding the left trigger varying amounts.
             brake = gamepad1.left_trigger; // 0 to 1
 
-            forward = -gamepad1.left_stick_y - brake;
-            strafe = gamepad1.left_stick_x - brake;
-            turn = gamepad1.right_stick_x - brake;
+            forward = -gamepad1.left_stick_y * (1 - brake);
+            strafe = gamepad1.left_stick_x * (1 -brake);
+            turn = gamepad1.right_stick_x * (1 - brake);
 
             // Combine forward and turn for blended motion. Use org.firstinspires.ftc.teamcode.RobotHardware class
             robot.mechanumDrive(forward, strafe, turn);
@@ -142,37 +142,31 @@ public class TeleopAlternateButtonConfiguration extends LinearOpMode {
 
             // Use gamepad X and Y buttons to cycle through lift height presets
             // Go to next higher lift height preset
-            if (gamepad1.y) {
-                if (!yButtonPressed && robot.armPositionIndex < robot.ARM_ANGLES.length - 1) {
-                    robot.armPositionIndex = robot.armPositionIndex + 1;
-                    robot.setArmAngle(robot.ARM_ANGLES[robot.armPositionIndex]);
-                    yButtonPressed = true;
-                }
-            } else yButtonPressed = false;
-            // Go to next lower lift height preset
             if (gamepad1.x) {
-                if (!xButtonPressed && robot.armPositionIndex > 0) {
-                    robot.armPositionIndex = robot.armPositionIndex - 1;
+                if (!xButtonPressed && robot.armPositionIndex < robot.ARM_ANGLES.length - 1) {
+                    robot.armPositionIndex = robot.armPositionIndex + 1;
                     robot.setArmAngle(robot.ARM_ANGLES[robot.armPositionIndex]);
                     xButtonPressed = true;
                 }
             } else xButtonPressed = false;
+            // Go to next lower lift height preset
+            if (gamepad1.y) {
+                if (!yButtonPressed && robot.armPositionIndex > 0) {
+                    robot.armPositionIndex = robot.armPositionIndex - 1;
+                    robot.setArmAngle(robot.ARM_ANGLES[robot.armPositionIndex]);
+                    yButtonPressed = true;
+                }
+            } else yButtonPressed = false;
 
             // Use gamepad buttons to rotate arm forward/down (dpad down) and back/up (dpad up)
-            if (gamepad1.b) {
-                if (!bButtonPressed) {
-                    robot.armAngleIncrement();
-                    bButtonPressed = true;
-                }
-            } else bButtonPressed = false;
-
-            if (gamepad1.a) {
-                if (!aButtonPressed) {
-                    robot.armAngleDecrement();
-                    aButtonPressed = true;
-                }
-            } else aButtonPressed = false;
-
+            if (gamepad1.a && runtime.seconds() - aLastTime > BUTTON_PRESS_DELAY) {
+                robot.armAngleDecrement();
+                aLastTime = runtime.seconds();
+            }
+            if (gamepad1.b && runtime.seconds() - bLastTime > BUTTON_PRESS_DELAY) {
+                robot.armAngleIncrement();
+                bLastTime = runtime.seconds();
+            }
 
 
             // Use gamepad Dpad left and right buttons to cycle through lift height presets
@@ -246,20 +240,20 @@ public class TeleopAlternateButtonConfiguration extends LinearOpMode {
             telemetry.addData("Arm Angle Preset Target", robot.ARM_ANGLES[robot.armPositionIndex]);
             telemetry.addData("Arm Angle Relative to Zero", "%.2f",robot.getArmAngleRelativeToZero());
             telemetry.addData("Arm Target Angle", "%.2f",robot.getArmTargetAngle());
-//            telemetry.addData("Arm Position", "%.2f",robot.getArmEncoderCounts());
-//            telemetry.addData("Arm Target Position", "%.2f",robot.getArmTargetPosition());
+            telemetry.addData("Arm Position", "%.2f",robot.getArmEncoderCounts());
+            telemetry.addData("Arm Target Position", "%.2f",robot.getArmTargetPosition());
             telemetry.addData("Arm State", robot.getArmState());
             telemetry.addData("Arm Current (Amps)", robot.getArmCurrentAmps());
-            telemetry.addData("Lift State", robot.getLiftState());
-            telemetry.addData("Lift Position Index", robot.liftPositionIndex);
-            telemetry.addData("Lift Preset Target Position", robot.LIFT_POSITIONS[robot.liftPositionIndex]);
-            telemetry.addData("Lift Target Position", robot.getLiftTargetPosition());
-            telemetry.addData("Left Lift Position", robot.getLeftLiftPosition());
-            telemetry.addData("Right Lift Position", robot.getRightLiftPosition());
-            telemetry.addData("Left Lift Position Inches", robot.getLeftLiftPositionInches());
-            telemetry.addData("Right Lift Position Inches", robot.getRightLiftPositionInches());
-            telemetry.addData("Left Lift Current (Amps)",robot.getLiftLeftCurrentAmps());
-            telemetry.addData("Right Lift Current (Amps", robot.getLiftRightCurrentAmps());
+//            telemetry.addData("Lift State", robot.getLiftState());
+//            telemetry.addData("Lift Position Index", robot.liftPositionIndex);
+//            telemetry.addData("Lift Preset Target Position", robot.LIFT_POSITIONS[robot.liftPositionIndex]);
+//            telemetry.addData("Lift Target Position", robot.getLiftTargetPosition());
+//            telemetry.addData("Left Lift Position", robot.getLeftLiftPosition());
+//            telemetry.addData("Right Lift Position", robot.getRightLiftPosition());
+//            telemetry.addData("Left Lift Position Inches", robot.getLeftLiftPositionInches());
+//            telemetry.addData("Right Lift Position Inches", robot.getRightLiftPositionInches());
+//            telemetry.addData("Left Lift Current (Amps)",robot.getLiftLeftCurrentAmps());
+//            telemetry.addData("Right Lift Current (Amps", robot.getLiftRightCurrentAmps());
             telemetry.addData("Runtime", "%.2f",runtime.seconds());
             telemetry.update();
 

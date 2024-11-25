@@ -48,13 +48,13 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="ArmTest", group="Linear OpMode")
+@TeleOp(name="LiftTest", group="Linear OpMode")
 @Disabled
 public class ArmTest extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor armRotate = null;
+    private DcMotor leftLift = null;
 
     @Override
     public void runOpMode() {
@@ -64,12 +64,12 @@ public class ArmTest extends LinearOpMode {
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
-        armRotate = hardwareMap.get(DcMotor.class, "arm_rotate");
+        leftLift = hardwareMap.get(DcMotor.class, "left_lift");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        armRotate.setDirection(DcMotor.Direction.REVERSE);
+        leftLift.setDirection(DcMotor.Direction.REVERSE);
 
         // Wait for the game to start (driver presses START)
         waitForStart();
@@ -78,14 +78,14 @@ public class ArmTest extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             // Setup a variable for each arm wheel to save power level for telemetry
-            double armPower = -gamepad1.left_stick_y;
+            double liftPower = -gamepad1.left_stick_y;
 
             // Send calculated power to wheels
-            armRotate.setPower(armPower);
+            leftLift.setPower(liftPower);
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Motors", "left (%.2f)", armPower);
+            telemetry.addData("Motors", "left (%.2f)", liftPower);
             telemetry.update();
         }
     }
