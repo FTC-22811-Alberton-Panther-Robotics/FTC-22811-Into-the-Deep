@@ -102,7 +102,7 @@ public class MorrisIterative extends OpMode
         double turn  =  gamepad1.right_stick_x;
 
         // Combine drive and turn for blended motion. Use org.firstinspires.ftc.teamcode.RobotHardware class
-        robot.mechanumDrive(drive, strafe, turn);
+        robot.mecanumDrive(drive, strafe, turn);
 
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time: " + runtime.toString());

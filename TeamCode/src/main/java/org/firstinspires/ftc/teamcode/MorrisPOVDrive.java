@@ -116,7 +116,7 @@ public class MorrisPOVDrive extends LinearOpMode {
             turn  =  gamepad1.right_stick_x;
 
             // Combine forward and turn for blended motion. Use org.firstinspires.ftc.teamcode.RobotHardware class
-            robot.mechanumDrive(forward, strafe, turn);
+            robot.mecanumDrive(forward, strafe, turn);
 
             // Use gamepad left & right Bumpers to open and close the gripper claw
             // Use the SERVO constants defined in org.firstinspires.ftc.teamcode.RobotHardware class.
