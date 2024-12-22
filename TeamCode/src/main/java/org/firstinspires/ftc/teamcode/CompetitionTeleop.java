@@ -85,7 +85,7 @@ public class CompetitionTeleop extends LinearOpMode {
         double forward;
         double turn;
         double strafe;
-        double brake = 0, aLastTime = 0, bLastTime = 0, xLastTime = 0, yLastTime = 0, rBLastTime = 0, lBLastTime = 0, dPadUpLastTime = 0, dpadDownLastTime = 0, rightTriggerLastTime = 0, leftTriggerLastTime = 0;
+        double brake = 0, aLastTime = 0, bLastTime = 0, xLastTime = 0, yLastTime = 0, rBLastTime = 0, lBLastTime = 0, dPadUpLastTime = 0, dpadDownLastTime = 0, rightBumperLastTime = 0, leftBumperLastTime = 0;
         boolean aButtonPressed = false, bButtonPressed = false, xButtonPressed = false, yButtonPressed = false, dPadUpPressed = false, dPadDownPressed = false, dPadLeftPressed = false, dPadRightPressed = false,
                 rightTriggerPressed = false, leftTriggerPressed = false, backButtonPressed = false, startButtonPressed = false, preHangStarted = false, hangStarted = false;
         final double BUTTON_PRESS_DELAY = .075;// seconds, keep track of how long a button has been pressed and allow for a quick press to move a servo a small amount while a long press moves the servo a longer distance.
@@ -129,13 +129,11 @@ public class CompetitionTeleop extends LinearOpMode {
             // Close gripper when right bumper is pressed if it's not already at max, open gripper when left bumper is pressed if it's not already at min
             // Keeps track of how long a button is pressed and moves a small amount for a short press and a larger amount for a long press
             // Use the MOTOR constants defined in org.firstinspires.ftc.teamcode.RobotHardware class.
-            if (gamepad1.right_bumper && runtime.seconds() - rBLastTime > BUTTON_PRESS_DELAY) {
-                robot.gripperIncrement();
-                rBLastTime = runtime.seconds();
-            }
-            if (gamepad1.left_bumper && runtime.seconds() - lBLastTime > BUTTON_PRESS_DELAY) {
-                robot.gripperDecrement();
-                lBLastTime = runtime.seconds();
+            if (gamepad1.right_trigger > .1){
+                robot.intakeIn(gamepad1.right_trigger);
+
+            } else if (gamepad1.left_trigger > .1){
+                robot.intakeOut(gamepad1.left_trigger);
             }
             // Use gamepad X and Y buttons to cycle through lift height presets
             // Go to next higher lift height preset
@@ -155,20 +153,6 @@ public class CompetitionTeleop extends LinearOpMode {
                 }
             } else xButtonPressed = false;
 
-            // Use gamepad buttons to rotate arm forward/down (dpad down) and back/up (dpad up)
-//            if (gamepad1.b) {
-//                if (!bButtonPressed) {
-//                    robot.armAngleIncrement();
-//                    bButtonPressed = true;
-//                }
-//            } else bButtonPressed = false;
-//
-//            if (gamepad1.a) {
-//                if (!aButtonPressed) {
-//                    robot.armAngleDecrement();
-//                    aButtonPressed = true;
-//                }
-//            } else aButtonPressed = false;
             if (gamepad1.a && runtime.seconds() - aLastTime > BUTTON_PRESS_DELAY) {
                 robot.armAngleIncrement();
                 aLastTime = runtime.seconds();
@@ -180,13 +164,13 @@ public class CompetitionTeleop extends LinearOpMode {
 
 
             // Use trigger buttons to rotate wrist up (right trigger) and down (left trigger)
-            if (gamepad1.right_trigger > 0.1 && runtime.seconds() - rightTriggerLastTime > BUTTON_PRESS_DELAY) {
+            if (gamepad1.right_bumper && runtime.seconds() - rightBumperLastTime > BUTTON_PRESS_DELAY) {
                 robot.wristIncrement();
-                rightTriggerLastTime = runtime.seconds();
+                rightBumperLastTime = runtime.seconds();
             }
-            if (gamepad1.left_trigger > 0.1 && runtime.seconds() - leftTriggerLastTime > BUTTON_PRESS_DELAY) {
+            if (gamepad1.left_bumper && runtime.seconds() - leftBumperLastTime > BUTTON_PRESS_DELAY) {
                 robot.wristDecrement();
-                leftTriggerLastTime = runtime.seconds();
+                leftBumperLastTime = runtime.seconds();
             }
 
             // Use gamepad Dpad left and right buttons to cycle through lift height presets
@@ -253,7 +237,6 @@ public class CompetitionTeleop extends LinearOpMode {
 //            telemetry.addData("Drive Power", "%.2f", forward);
 //            telemetry.addData("Strafe Power", "%.2f", strafe);
 //            telemetry.addData("Turn Power",  "%.2f", turn);
-            telemetry.addData("Gripper Position",  "%.2f", robot.getGripperPosition());
 //            telemetry.addData("Wrist Position", "%.2f", robot.getWristPosition());
 //            telemetry.addData("Wrist Angle", "%.2f", robot.getWristAngle());
 //            telemetry.addData("Arm Position Index", robot.armPositionIndex);

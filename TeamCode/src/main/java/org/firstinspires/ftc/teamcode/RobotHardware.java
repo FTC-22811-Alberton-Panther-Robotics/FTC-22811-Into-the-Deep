@@ -29,6 +29,7 @@ package org.firstinspires.ftc.teamcode;
  */
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -43,7 +44,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
  * Please read the explanations in that Sample about how to use this class definition.
  *
  * This file defines a Java Class that performs all the setup and configuration for a sample robot's hardware (motors and sensors).
- * It assumes six motors (left_front_drive, left_rear_drive, right_front_drive, right_rear_drive, arm_rotate, and arm_extend) and two servos (wrist and gripper)
+ * It assumes six motors (left_front_drive, left_rear_drive, right_front_drive, right_rear_drive, arm_rotate, and arm_extend) and two servos (wrist and intakeLeft)
  *
  * This one file/class can be used by ALL of your OpModes without having to cut & paste the code each time.
  *
@@ -83,7 +84,8 @@ public class RobotHardware {
     private DcMotorEx leftLiftEx = null;
     private DcMotorEx rightLiftEx = null;
     private Servo   wrist = null;
-    private Servo   gripper = null;
+    private CRServo intakeLeft = null;
+    private CRServo intakeRight = null;
 
     // General Constants
 
@@ -100,8 +102,7 @@ public class RobotHardware {
     private static final double     WHEEL_DIAMETER_INCHES   = 96 * 25.4 ;     // 96mm converted to inches. For figuring circumference
     private static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REVOL * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
 
-    // Gripper and Wrist Constants
-    private static final double GRIPPER_INCREMENT = 0.06, GRIPPER_MAX = 1, GRIPPER_MIN = 0 ;  // sets rate to move gripper servo and max and min travel. If you use SRS servo programmer to set limits, this will be 1 and 0. If you need to limit travel in the software, this is where to do it.
+    // Wrist Constants
     private static final double WRIST_INCREMENT = 0.02 ; // sets rate to move wrist servo
     private static final double WRIST_MAX_ANGLE  = 300 ; // Adjust this angle if SRS servo programmer has limited servo travel to less than 300
 
@@ -203,7 +204,8 @@ public class RobotHardware {
 
         // Define and initialize ALL installed servos.
         wrist = myOpMode.hardwareMap.get(Servo.class, "wrist");
-        gripper = myOpMode.hardwareMap.get(Servo.class, "gripper");
+        intakeLeft = myOpMode.hardwareMap.get(CRServo.class, "intakeLeft");
+        intakeRight = myOpMode.hardwareMap.get(CRServo.class, "intakeRight");
 
         myOpMode.telemetry.addData(">", "Hardware Initialized");
         myOpMode.telemetry.update();
@@ -606,26 +608,12 @@ public class RobotHardware {
         hangCurrentState = HangState.values()[hangIndex];
     }
 
-    // Gripper Code
-    /**
-     * Send the gripper the new position to go to
-     * @param position value from 0 to 1
-     */
-    public void setGripperPosition(double position) {
-        gripper.setPosition(position);
+    // Intake Wheels Code
+    public void intakeIn(double power){
+        intakeLeft.setPower(power);
     }
-    public void gripperIncrement(){
-        if (gripper.getPosition() + GRIPPER_INCREMENT <= 1) {
-            setGripperPosition(gripper.getPosition() + GRIPPER_INCREMENT);
-        }
-    }
-    public void gripperDecrement(){
-        if (gripper.getPosition() - GRIPPER_INCREMENT >= 0) {
-            setGripperPosition((gripper.getPosition() - GRIPPER_INCREMENT));
-        }
-    }
-    public double getGripperPosition(){
-        return gripper.getPosition();
+    public void intakeOut(double power){
+        intakeLeft.setPower(-power);
     }
 
     // Wrist Code

@@ -138,7 +138,7 @@ public class TeleopAlternateButtonConfiguration extends LinearOpMode {
                 lBLastTime = runtime.seconds();
             }
             // Use right trigger button to open/close gripper. Hold trigger to close, release to open.
-            robot.setGripperPosition(gamepad1.right_trigger);
+            //robot.setGripperPosition(gamepad1.right_trigger);
 
             // Use gamepad X and Y buttons to cycle through lift height presets
             // Go to next higher lift height preset
@@ -233,7 +233,6 @@ public class TeleopAlternateButtonConfiguration extends LinearOpMode {
 //            telemetry.addData("Drive Power", "%.2f", forward);
 //            telemetry.addData("Strafe Power", "%.2f", strafe);
 //            telemetry.addData("Turn Power",  "%.2f", turn);
-            telemetry.addData("Gripper Position",  "%.2f", robot.getGripperPosition());
 //            telemetry.addData("Wrist Position", "%.2f", robot.getWristPosition());
 //            telemetry.addData("Wrist Angle", "%.2f", robot.getWristAngle());
 //            telemetry.addData("Arm Position Index", robot.armPositionIndex);
