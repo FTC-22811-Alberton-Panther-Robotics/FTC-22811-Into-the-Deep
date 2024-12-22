@@ -119,7 +119,7 @@ public class TeleopAlternateButtonConfiguration extends LinearOpMode {
             turn = gamepad1.right_stick_x * (1 - brake);
 
             // Combine forward and turn for blended motion. Use org.firstinspires.ftc.teamcode.RobotHardware class
-            robot.mechanumDrive(forward, strafe, turn);
+            robot.mecanumDrive(forward, strafe, turn);
 
             // Use the SERVO constants defined in org.firstinspires.ftc.teamcode.RobotHardware class.
             // Each time around the loop, the servos will move by a small amount.

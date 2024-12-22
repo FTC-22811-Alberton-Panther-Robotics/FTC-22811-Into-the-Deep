@@ -284,7 +284,7 @@ public class CompetitionAutoDriveByTime extends LinearOpMode {
      */
     private void driveForTime(double time, double forward, double turn, double strafe) {
         legNumber += 1;
-        robot.mechanumDrive(forward, strafe, turn);
+        robot.mecanumDrive(forward, strafe, turn);
         ElapsedTime legTime = new ElapsedTime();
         while (opModeIsActive() && (legTime.seconds() < time)) {
             telemetry.addData("Path", "Leg ", legNumber, ": %4.1f S Elapsed", legTime.seconds());

@@ -221,7 +221,7 @@ public class RobotHardware {
      * @param strafe    Right/Left strafing (-1.0 to 1.0) +ve is right
      * @param turn      Right/Left turning power (-1.0 to 1.0) +ve is CW
      */
-    public void mechanumDrive(double forward, double strafe, double turn) {
+    public void mecanumDrive(double forward, double strafe, double turn) {
         // Combine forward, strafe, and turn for blended motion.
         double leftFront  = forward + strafe + turn;
         double leftRear = forward - strafe + turn;

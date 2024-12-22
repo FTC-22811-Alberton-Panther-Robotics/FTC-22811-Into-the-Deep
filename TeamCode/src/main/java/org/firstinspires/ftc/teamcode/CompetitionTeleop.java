@@ -54,7 +54,7 @@ import com.qualcomm.robotcore.util.Range;
  */
 
 /**
- * Mr. Morris:           TO DO: 1) Test, then revise code for arm, lift, gripper, and wrist
+ * Mr. Morris:           TODO: 1) Test, then revise code for arm, lift, gripper, and wrist
  *                              2) Write code and presets for lift. An automated hang sequence is especially needed.
  *                              3) Write code for wrist. - I think this is at least temporarily done, but the wrist servo seems to be in continuous mode so we need to use the SRS programmer, fix that, then test.
  *                              4) Test second lift motor once it is installed
@@ -120,7 +120,7 @@ public class CompetitionTeleop extends LinearOpMode {
             turn = gamepad1.right_stick_x * (1 - brake);
 
             // Combine forward and turn for blended motion. Use org.firstinspires.ftc.teamcode.RobotHardware class
-            robot.mechanumDrive(forward, strafe, turn);
+            robot.mecanumDrive(forward, strafe, turn);
 
             // Use gamepad left & right Bumpers to open and close the gripper claw
             // Use the SERVO constants defined in org.firstinspires.ftc.teamcode.RobotHardware class.
