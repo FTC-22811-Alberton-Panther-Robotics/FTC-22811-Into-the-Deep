@@ -125,14 +125,14 @@ public class MorrisPOVDrive extends LinearOpMode {
 
             // Close gripper when right bumper is pressed if it's not already at max, open gripper when left bumper is pressed if it's not already at min
             // Keeps track of how long a button is pressed and moves a small amount for a short press and a larger amount for a long press
-            if (gamepad1.right_bumper && runtime.seconds() - rBLastTime > BUTTON_PRESS_DELAY){
-                robot.gripperIncrement();
-                rBLastTime = runtime.seconds();
-            }
-            if (gamepad1.left_bumper && runtime.seconds() - lBLastTime > BUTTON_PRESS_DELAY){
-                robot.gripperDecrement();
-                lBLastTime = runtime.seconds();
-            }
+//            if (gamepad1.right_bumper && runtime.seconds() - rBLastTime > BUTTON_PRESS_DELAY){
+//                robot.gripperIncrement();
+//                rBLastTime = runtime.seconds();
+//            }
+//            if (gamepad1.left_bumper && runtime.seconds() - lBLastTime > BUTTON_PRESS_DELAY){
+//                robot.gripperDecrement();
+//                lBLastTime = runtime.seconds();
+//            }
 
             if (gamepad1.y){
                 if (!yButtonPressed){
@@ -217,7 +217,6 @@ public class MorrisPOVDrive extends LinearOpMode {
             telemetry.addData("Drive Power", "%.2f", forward);
             telemetry.addData("Turn Power",  "%.2f", turn);
 //            telemetry.addData("Arm Extend Power",  "%.2f", armExtendTarget);
-            telemetry.addData("Gripper Position",  "%.2f", robot.getGripperPosition());
             telemetry.addData("Arm Angle Relative to Zero", "%.2f",robot.getArmAngleRelativeToZero());
             telemetry.addData("Arm Target Angle", "%.2f",robot.getArmTargetAngle());
             telemetry.addData("Arm Position", "%.2f",robot.getArmEncoderCounts());

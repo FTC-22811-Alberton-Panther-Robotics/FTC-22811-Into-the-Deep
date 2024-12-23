@@ -109,9 +109,9 @@ public class RobotHardware {
     // Arm Constants
     private static final long ARM_POSITION_TIMEOUT = 3000;
     private static final int ARM_INCREMENT_DEGREES = 5, ARM_ROTATE_MAX = 160, ARM_ROTATE_MIN = -20, ARM_ROTATE_ENCODER_RESOLUTION = 28, ARM_ROTATE_GEAR_RATIO = 60, // Straight forward defined as 0 degrees
-            ARM_STARTING_ANGLE_OFFSET = 120, ARM_STOW = ARM_STARTING_ANGLE_OFFSET, ARM_INTAKE = 0, SPECIMEN_INTAKE = 30, CHAMBER_SCORE = 70, ARM_OUTTAKE = 100;
+            ARM_STARTING_ANGLE_OFFSET = 180, ARM_STOW = ARM_STARTING_ANGLE_OFFSET, ARM_INTAKE = 0, SPECIMEN_INTAKE = 30, CHAMBER_SCORE = 70, ARM_OUTTAKE = 100;
     public final double[] ARM_ANGLES = {ARM_STOW, ARM_OUTTAKE, CHAMBER_SCORE, SPECIMEN_INTAKE, ARM_INTAKE, ARM_ROTATE_MIN};
-    private static final double ARM_MAX_CURRENT_AMPS = 7;
+    private static final double ARM_MAX_CURRENT_AMPS = 8;
     // Create state machines to track what state the arm and lift motors are in. A state machine is a computational model that represents a system
     // with a finite number of states and transitions between those states. It's a powerful tool for managing complex logic and behavior,
     // especially in systems with dynamic or event-driven interactions. Check out the updateArmState and updateLiftState functions to see how this works.
@@ -206,6 +206,7 @@ public class RobotHardware {
         wrist = myOpMode.hardwareMap.get(Servo.class, "wrist");
         intakeLeft = myOpMode.hardwareMap.get(CRServo.class, "intakeLeft");
         intakeRight = myOpMode.hardwareMap.get(CRServo.class, "intakeRight");
+        intakeRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         myOpMode.telemetry.addData(">", "Hardware Initialized");
         myOpMode.telemetry.update();
@@ -302,11 +303,13 @@ public class RobotHardware {
                 arm.setTargetPosition(armTargetPosition);
                 arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 int distance = armTargetPosition - arm.getCurrentPosition(); // This is used to calculate which direction the motor is going to move to adjust gravity correctly (add speed when going up, slow when going down)
-                double gravityCompensation = 300 * Math.cos(Math.toRadians(calculateAngleFromEncoderValue(arm.getCurrentPosition()))); // Adjust gravity compensation as needed
-                double velocity = 1000;
-                if (distance >= 0) {velocity += gravityCompensation;}
-                else {velocity -= gravityCompensation;}
-                armEx.setVelocity(velocity);
+                double gravityCompensation = .1 * Math.cos(Math.toRadians(calculateAngleFromEncoderValue(arm.getCurrentPosition()))); // Adjust gravity compensation as needed
+                double power = .2;
+                if (distance >= 0) {
+                    power -= gravityCompensation;}
+                else {
+                    power += gravityCompensation;}
+                armEx.setPower(power);
                 if (armStateTimer.seconds() > ARM_POSITION_TIMEOUT) {
                     armCurrentState = ArmState.TIMEOUT;
                     armStateTimer.reset();
@@ -611,9 +614,11 @@ public class RobotHardware {
     // Intake Wheels Code
     public void intakeIn(double power){
         intakeLeft.setPower(power);
+        intakeRight.setPower(power);
     }
     public void intakeOut(double power){
         intakeLeft.setPower(-power);
+        intakeRight.setPower(-power);
     }
 
     // Wrist Code
