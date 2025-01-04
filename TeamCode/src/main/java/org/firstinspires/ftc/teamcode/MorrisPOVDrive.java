@@ -58,7 +58,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  *                              2) Write code and presets for lift. An automated hang sequence is especially needed.
  *                              3) Write code for wrist.
  *                              4) Once second lift motor is installed - Implement code in RobotHardware
- *                              5) Change code when active intake and color sensor is implemented
+ *                              5) Change code when active intakeLeft and color sensor is implemented
  *                              6) Consider implementing Driver-centric toggle
  *                              7) Set up code for hardware limit switches for arm and lift - Edit: this may not be necessary with the over current sensing
  *

@@ -58,7 +58,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  *                              3) Write code for wrist. - I think this is at least temporarily done, but the wrist servo seems to be in continuous mode so we need to use the SRS programmer, fix that, then test.
  *                              4) Test second lift motor once it is installed
  *                              5) Consider including initial offset for lift so that measurements can be taken from ground
- *                              6) Change code when active intake and color sensor is implemented
+ *                              6) Change code when active intakeLeft and color sensor is implemented
  *                              7) Consider implementing Driver-centric toggle
  *                              8) Set up code for hardware limit switches for arm and lift - Edit: this may not be necessary with the over current sensing
  *
@@ -143,9 +143,9 @@ public class TeleopAlternateButtonConfiguration extends LinearOpMode {
             // Use gamepad X and Y buttons to cycle through lift height presets
             // Go to next higher lift height preset
             if (gamepad1.x) {
-                if (!xButtonPressed && robot.armPositionIndex < robot.ARM_ANGLES.length - 1) {
+                if (!xButtonPressed && robot.armPositionIndex < robot.ARM_PRESET_ANGLES.length - 1) {
                     robot.armPositionIndex = robot.armPositionIndex + 1;
-                    robot.setArmAngle(robot.ARM_ANGLES[robot.armPositionIndex]);
+                    robot.setArmAngle(robot.ARM_PRESET_ANGLES[robot.armPositionIndex]);
                     xButtonPressed = true;
                 }
             } else xButtonPressed = false;
@@ -153,7 +153,7 @@ public class TeleopAlternateButtonConfiguration extends LinearOpMode {
             if (gamepad1.y) {
                 if (!yButtonPressed && robot.armPositionIndex > 0) {
                     robot.armPositionIndex = robot.armPositionIndex - 1;
-                    robot.setArmAngle(robot.ARM_ANGLES[robot.armPositionIndex]);
+                    robot.setArmAngle(robot.ARM_PRESET_ANGLES[robot.armPositionIndex]);
                     yButtonPressed = true;
                 }
             } else yButtonPressed = false;
@@ -236,7 +236,7 @@ public class TeleopAlternateButtonConfiguration extends LinearOpMode {
 //            telemetry.addData("Wrist Position", "%.2f", robot.getWristPosition());
 //            telemetry.addData("Wrist Angle", "%.2f", robot.getWristAngle());
 //            telemetry.addData("Arm Position Index", robot.armPositionIndex);
-            telemetry.addData("Arm Angle Preset Target", robot.ARM_ANGLES[robot.armPositionIndex]);
+            telemetry.addData("Arm Angle Preset Target", robot.ARM_PRESET_ANGLES[robot.armPositionIndex]);
             telemetry.addData("Arm Angle Relative to Zero", "%.2f",robot.getArmAngleRelativeToZero());
             telemetry.addData("Arm Target Angle", "%.2f",robot.getArmTargetAngle());
             telemetry.addData("Arm Position", "%.2f",robot.getArmEncoderCounts());

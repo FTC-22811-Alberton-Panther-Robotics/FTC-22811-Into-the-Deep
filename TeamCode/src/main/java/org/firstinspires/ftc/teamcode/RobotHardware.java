@@ -109,9 +109,22 @@ public class RobotHardware {
     // Arm Constants
     private static final long ARM_POSITION_TIMEOUT = 3000;
     private static final int ARM_INCREMENT_DEGREES = 5, ARM_ROTATE_MAX = 160, ARM_ROTATE_MIN = -20, ARM_ROTATE_ENCODER_RESOLUTION = 28, ARM_ROTATE_GEAR_RATIO = 60, // Straight forward defined as 0 degrees
-            ARM_STARTING_ANGLE_OFFSET = 180, ARM_STOW = ARM_STARTING_ANGLE_OFFSET, ARM_INTAKE = 0, SPECIMEN_INTAKE = 30, CHAMBER_SCORE = 70, ARM_OUTTAKE = 100;
-    public final double[] ARM_ANGLES = {ARM_STOW, ARM_OUTTAKE, CHAMBER_SCORE, SPECIMEN_INTAKE, ARM_INTAKE, ARM_ROTATE_MIN};
-    private static final double ARM_MAX_CURRENT_AMPS = 8;
+            ARM_STARTING_ANGLE_OFFSET = 0, ARM_STOW = ARM_STARTING_ANGLE_OFFSET, ARM_INTAKE = 180, SPECIMEN_INTAKE = 150, CHAMBER_SCORE = 110, ARM_OUTTAKE = 80;
+    public final double[] ARM_PRESET_ANGLES = {ARM_STOW, ARM_OUTTAKE, CHAMBER_SCORE, SPECIMEN_INTAKE, ARM_INTAKE, ARM_ROTATE_MIN};
+    public enum ArmPreset {
+        STOW(0),
+        OUTTAKE(80),
+        CHAMBER_SCORE(110),
+        WALL_INTAKE(150),
+        FLOOR_INTAKE(180),
+        MAX_ANGLE(220);
+        private final int angle;
+        ArmPreset(int angle) { this.angle = angle;
+        }
+        public int getAngle() { return angle;
+        }
+    }
+    private static final double ARM_MAX_CURRENT_AMPS = 20;
     // Create state machines to track what state the arm and lift motors are in. A state machine is a computational model that represents a system
     // with a finite number of states and transitions between those states. It's a powerful tool for managing complex logic and behavior,
     // especially in systems with dynamic or event-driven interactions. Check out the updateArmState and updateLiftState functions to see how this works.
@@ -176,7 +189,7 @@ public class RobotHardware {
         leftRearDrive.setDirection(DcMotor.Direction.REVERSE);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightRearDrive.setDirection(DcMotor.Direction.FORWARD);
-        arm.setDirection(DcMotorSimple.Direction.FORWARD);
+        arm.setDirection(DcMotorSimple.Direction.REVERSE);
         leftLift.setDirection(DcMotorSimple.Direction.FORWARD);
         rightLift.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -301,15 +314,17 @@ public class RobotHardware {
                 break;
             case MOVING_TO_TARGET:
                 arm.setTargetPosition(armTargetPosition);
+                armEx.setVelocity(1500);
                 arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                int distance = armTargetPosition - arm.getCurrentPosition(); // This is used to calculate which direction the motor is going to move to adjust gravity correctly (add speed when going up, slow when going down)
-                double gravityCompensation = .1 * Math.cos(Math.toRadians(calculateAngleFromEncoderValue(arm.getCurrentPosition()))); // Adjust gravity compensation as needed
-                double power = .2;
-                if (distance >= 0) {
-                    power -= gravityCompensation;}
-                else {
-                    power += gravityCompensation;}
-                armEx.setPower(power);
+//                int distance = armTargetPosition - arm.getCurrentPosition(); // This is used to calculate which direction the motor is going to move to adjust gravity correctly (add speed when going up, slow when going down)
+//                double gravityCompensation = .1 * Math.cos(Math.toRadians(calculateAngleFromEncoderValue(arm.getCurrentPosition()))); // Adjust gravity compensation as needed
+//                double power = .2;
+//                if (distance >= 0) {
+//                    power -= gravityCompensation;}
+//                else {
+//                    power += gravityCompensation;}
+//                armEx.setPower(power);
+
                 if (armStateTimer.seconds() > ARM_POSITION_TIMEOUT) {
                     armCurrentState = ArmState.TIMEOUT;
                     armStateTimer.reset();
@@ -397,6 +412,22 @@ public class RobotHardware {
         double angleRelativeToZero = calculateAngleFromEncoderValue(encoderCounts) + ARM_STARTING_ANGLE_OFFSET;
         return angleRelativeToZero;
     }
+    // Compare the current arm angle to the array of arm presets and return the preset angle that is the next higher
+    public double getArmNextHigherPreset(){
+        double angle = getArmAngleRelativeToZero();
+        for (double armPresetAngle : ARM_PRESET_ANGLES) {
+            if (angle < armPresetAngle) return armPresetAngle;
+        }
+        return ARM_PRESET_ANGLES[ARM_PRESET_ANGLES.length - 1];
+    }
+    // Compare the current arm angle to the array of arm presets and return the preset angle that is the next lower
+    public double getArmNextLowerPreset() {
+        double angle = getArmAngleRelativeToZero();
+        for (int i = ARM_PRESET_ANGLES.length - 1; i >= 0; i--) {
+            if (angle > ARM_PRESET_ANGLES[i]) return ARM_PRESET_ANGLES[i];
+        }
+        return ARM_PRESET_ANGLES[0];
+    }
     public double getArmEncoderCounts(){
         return arm.getCurrentPosition();
     }
@@ -426,10 +457,10 @@ public class RobotHardware {
             case MOVING_UP:
                 leftLift.setTargetPosition(liftTargetPosition);
                 rightLift.setTargetPosition(liftTargetPosition);
+                leftLiftEx.setVelocity(2100);
+                rightLiftEx.setVelocity(2100);
                 leftLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 rightLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                leftLiftEx.setVelocity(1000);
-                rightLiftEx.setVelocity(1000);
                 if (hangStateTimer.seconds() > LIFT_POSITION_TIMEOUT) {
                     liftCurrentState = LiftState.TIMEOUT;
                     hangStateTimer.reset();

@@ -59,7 +59,7 @@ import com.qualcomm.robotcore.util.Range;
  *                              3) Write code for wrist. - I think this is at least temporarily done, but the wrist servo seems to be in continuous mode so we need to use the SRS programmer, fix that, then test.
  *                              4) Test second lift motor once it is installed
  *                              5) Consider including initial offset for lift so that measurements can be taken from ground
- *                              6) Change code when active intake and color sensor is implemented
+ *                              6) Change code when active intakeLeft and color sensor is implemented
  *                              7) Consider implementing Driver-centric toggle
  *                              8) Set up code for hardware limit switches for arm and lift - Edit: this may not be necessary with the over current sensing
  *
@@ -134,21 +134,20 @@ public class CompetitionTeleop extends LinearOpMode {
 
             } else if (gamepad1.left_trigger > .1){
                 robot.intakeOut(gamepad1.left_trigger);
-            }
-            // Use gamepad X and Y buttons to cycle through lift height presets
-            // Go to next higher lift height preset
+            } else robot.intakeIn(0);
+
+            // Use gamepad X and Y buttons to cycle through arm angle presets
+            // Go to next higher arm angle preset
             if (gamepad1.y) {
-                if (!yButtonPressed && robot.armPositionIndex < robot.ARM_ANGLES.length - 1) {
-                    robot.armPositionIndex = robot.armPositionIndex + 1;
-                    robot.setArmAngle(robot.ARM_ANGLES[robot.armPositionIndex]);
+                if (!yButtonPressed){
+                    robot.setArmAngle(robot.getArmNextHigherPreset());
                     yButtonPressed = true;
                 }
             } else yButtonPressed = false;
             // Go to next lower lift height preset
             if (gamepad1.x) {
-                if (!xButtonPressed && robot.armPositionIndex > 0) {
-                    robot.armPositionIndex = robot.armPositionIndex - 1;
-                    robot.setArmAngle(robot.ARM_ANGLES[robot.armPositionIndex]);
+                if (!xButtonPressed){
+                    robot.setArmAngle(robot.getArmNextLowerPreset());
                     xButtonPressed = true;
                 }
             } else xButtonPressed = false;
@@ -239,12 +238,12 @@ public class CompetitionTeleop extends LinearOpMode {
 //            telemetry.addData("Turn Power",  "%.2f", turn);
 //            telemetry.addData("Wrist Position", "%.2f", robot.getWristPosition());
 //            telemetry.addData("Wrist Angle", "%.2f", robot.getWristAngle());
-//            telemetry.addData("Arm Position Index", robot.armPositionIndex);
-            telemetry.addData("Arm Angle Preset Target", robot.ARM_ANGLES[robot.armPositionIndex]);
+            telemetry.addData("Arm Position Index", robot.armPositionIndex);
+            telemetry.addData("Arm Angle Preset Target", robot.ARM_PRESET_ANGLES[robot.armPositionIndex]);
             telemetry.addData("Arm Angle Relative to Zero", "%.2f",robot.getArmAngleRelativeToZero());
             telemetry.addData("Arm Target Angle", "%.2f",robot.getArmTargetAngle());
-//            telemetry.addData("Arm Position", "%.2f",robot.getArmEncoderCounts());
-//            telemetry.addData("Arm Target Position", "%.2f",robot.getArmTargetPosition());
+            telemetry.addData("Arm Position", "%.2f",robot.getArmEncoderCounts());
+            telemetry.addData("Arm Target Position", "%.2f",robot.getArmTargetPosition());
             telemetry.addData("Arm State", robot.getArmState());
             telemetry.addData("Arm Current (Amps)", robot.getArmCurrentAmps());
             telemetry.addData("Lift State", robot.getLiftState());
