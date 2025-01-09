@@ -108,9 +108,9 @@ public class RobotHardware {
 
     // Arm Constants
     private static final long ARM_POSITION_TIMEOUT = 3000;
-    private static final int ARM_INCREMENT_DEGREES = 5, ARM_ROTATE_MAX = 160, ARM_ROTATE_MIN = -20, ARM_ROTATE_ENCODER_RESOLUTION = 28, ARM_ROTATE_GEAR_RATIO = 60, // Straight forward defined as 0 degrees
-            ARM_STARTING_ANGLE_OFFSET = 0, ARM_STOW = ARM_STARTING_ANGLE_OFFSET, ARM_INTAKE = 180, SPECIMEN_INTAKE = 150, CHAMBER_SCORE = 110, ARM_OUTTAKE = 80;
-    public final double[] ARM_PRESET_ANGLES = {ARM_STOW, ARM_OUTTAKE, CHAMBER_SCORE, SPECIMEN_INTAKE, ARM_INTAKE, ARM_ROTATE_MIN};
+    private static final int ARM_INCREMENT_DEGREES = 10, ARM_ROTATE_MAX = 290, ARM_ROTATE_MIN = -20, ARM_ROTATE_ENCODER_RESOLUTION = 28, ARM_ROTATE_GEAR_RATIO = 60, // Straight forward defined as 0 degrees
+            ARM_STARTING_ANGLE_OFFSET = 0, ARM_STOW = ARM_STARTING_ANGLE_OFFSET, ARM_INTAKE_FLOOR = 180, SPECIMEN_INTAKE_ON_WALL = 245, HIGH_CHAMBER_SCORE = 160, ARM_OUTTAKE = 80;
+    public final double[] ARM_PRESET_ANGLES = {ARM_STOW, HIGH_CHAMBER_SCORE, SPECIMEN_INTAKE_ON_WALL, ARM_INTAKE_FLOOR};
     public enum ArmPreset {
         STOW(0),
         OUTTAKE(80),
@@ -124,7 +124,7 @@ public class RobotHardware {
         public int getAngle() { return angle;
         }
     }
-    private static final double ARM_MAX_CURRENT_AMPS = 20;
+    private static final double ARM_MAX_CURRENT_AMPS = 9;
     // Create state machines to track what state the arm and lift motors are in. A state machine is a computational model that represents a system
     // with a finite number of states and transitions between those states. It's a powerful tool for managing complex logic and behavior,
     // especially in systems with dynamic or event-driven interactions. Check out the updateArmState and updateLiftState functions to see how this works.
