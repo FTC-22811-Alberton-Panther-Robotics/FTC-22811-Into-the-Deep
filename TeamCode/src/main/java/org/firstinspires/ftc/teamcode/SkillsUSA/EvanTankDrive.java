@@ -55,9 +55,7 @@ public class EvanTankDrive extends OpMode{
     /* Declare OpMode members. */
     public DcMotor leftFrontDrive = null;
     public DcMotor rightFrontDrive = null;
-
     public DcMotor rightBackDrive = null;
-
     public DcMotor leftBackDrive = null;
 //    public DcMotor  leftArm     = null;
 //    public Servo    leftClaw    = null;
@@ -123,19 +121,21 @@ public class EvanTankDrive extends OpMode{
      */
     @Override
     public void loop() {
-        double left;
-        double right;
+
+        double drive;
+        double rot;
+        double denominator;
 
         // Run wheels in tank mode (note: The joystick goes negative when pushed forward, so negate it)
-        left = -gamepad1.left_stick_y;
-        right = -gamepad1.right_stick_y;
-
-        leftFrontDrive.setPower(left);
-        leftBackDrive.setPower(left);
-        rightBackDrive.setPower(right);
-        rightFrontDrive.setPower(right);
-
-//        // Use gamepad left & right Bumpers to open and close the claw
+        drive = -gamepad1.left_stick_y;
+        rot = gamepad1.left_stick_x;
+        denominator = Math.max(drive + rot,1);
+        leftFrontDrive.setPower((drive - rot)/denominator);
+        leftBackDrive.setPower((drive - rot)/denominator);
+        rightFrontDrive.setPower((drive + rot)/denominator);
+        rightBackDrive.setPower((drive + rot)/denominator);
+//
+// Use gamepad left & right Bumpers to open and close the claw
 //        if (gamepad1.right_bumper)
 //            clawOffset += CLAW_SPEED;
 //        else if (gamepad1.left_bumper)
@@ -156,8 +156,8 @@ public class EvanTankDrive extends OpMode{
 //
 //        // Send telemetry message to signify robot running;
 //        telemetry.addData("claw",  "Offset = %.2f", clawOffset);
-        telemetry.addData("left",  "%.2f", left);
-        telemetry.addData("right", "%.2f", right);
+//        telemetry.addData("left",  "%.2f", left);
+//        telemetry.addData("right", "%.2f", right);
     }
 
     /*
