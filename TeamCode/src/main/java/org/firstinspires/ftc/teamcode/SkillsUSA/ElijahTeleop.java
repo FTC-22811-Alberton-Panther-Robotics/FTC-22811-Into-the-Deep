@@ -31,10 +31,8 @@ package org.firstinspires.ftc.teamcode.SkillsUSA;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.Range;
 
 /*
  * This OpMode executes a Tank Drive control TeleOp a direct drive robot
@@ -49,20 +47,46 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Evan Tank", group="SkillsUSA")
+
+
+
+
+
+@TeleOp(name="Elijah Tank", group="SkillsUSA")
 //@Disabled
-public class EvanTankDrive extends OpMode{
+public class ElijahTeleop extends OpMode{
 
     /* Declare OpMode members. */
-    public DcMotor leftFrontDrive = null;
-    public DcMotor rightFrontDrive = null;
 
-    public DcMotor rightBackDrive = null;
 
-    public DcMotor leftBackDrive = null;
-//    public DcMotor  leftArm     = null;
-//    public Servo    leftClaw    = null;
-//    public Servo    rightClaw   = null;
+
+
+
+
+
+    public DcMotor leftFront = null;
+    public DcMotor rightfront = null;
+
+    public DcMotor rightback = null;
+
+    public DcMotor leftback = null;
+
+    public DcMotor lowerArm = null;
+
+    public DcMotor upperArm = null;
+
+    public Servo claw = null;
+
+    public Servo wrist = null;
+
+    public static double wirstPostiton = 0;
+
+    public static double clawPostition = 0;
+
+    public static double upperArmPostition = 0;
+
+    public static double lowerArmPostition = 0;
+
 
 //    double clawOffset = 0;
 
@@ -77,19 +101,22 @@ public class EvanTankDrive extends OpMode{
     @Override
     public void init() {
         // Define and Initialize Motors
-        leftFrontDrive = hardwareMap.get(DcMotor.class, "left_front_drive");
-        rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
-        leftBackDrive = hardwareMap.get(DcMotor.class, "left_back_drive");
-        rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
-       // leftArm    = hardwareMap.get(DcMotor.class, "left_arm");
+        leftFront = hardwareMap.get(DcMotor.class, "leftFront");
+        rightfront = hardwareMap.get(DcMotor.class, "rightFront");
+        leftback = hardwareMap.get(DcMotor.class, "leftback");
+        rightback= hardwareMap.get(DcMotor.class, "rightback");
+        lowerArm = hardwareMap.get(DcMotor.class, "lowerarm");
+        upperArm = hardwareMap.get(DcMotor.class, "upperarm");
+        claw = hardwareMap.get(Servo.class, "claw");
+        wrist = hardwareMap.get(Servo.class, "wrist");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left and right sticks forward MUST make robot go forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftFront.setDirection(DcMotor.Direction.REVERSE);
+        rightfront.setDirection(DcMotor.Direction.FORWARD);
+        leftback.setDirection(DcMotor.Direction.REVERSE);
+        rightback.setDirection(DcMotor.Direction.FORWARD);
 
         // If there are encoders connected, switch to RUN_USING_ENCODER mode for greater accuracy
         // leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -128,15 +155,36 @@ public class EvanTankDrive extends OpMode{
         double right;
         double drive;
         double turn;
+        double lowerArmForward;
+        double lowerArmBackward;
+        double upperArmForward;
+        double upperArmBackward;
+
+
+
+        //wirst movements
+        if (gamepad1.a) {
+            wirstPostiton += 0.01;
+        }
+        else if (gamepad1.b) {
+            wirstPostiton -= 0.01;
+        }
+            //claw movementa
+        if (gamepad1.x) {
+            clawPostition += 0.01;
+        }
+        else if (gamepad1.y) {
+            clawPostition -= 0.01;
+        }
 
         // Run wheels in tank mode (note: The joystick goes negative when pushed forward, so negate it)
         left = -gamepad1.left_stick_y;
         right = -gamepad1.right_stick_y;
 
-        leftFrontDrive.setPower(left);
-        leftBackDrive.setPower(left);
-        rightBackDrive.setPower(right);
-        rightFrontDrive.setPower(right);
+        leftFront.setPower(left);
+        leftback.setPower(left);
+        rightback.setPower(right);
+        rightfront.setPower(right);
 
 //        // Use gamepad left & right Bumpers to open and close the claw
 //        if (gamepad1.right_bumper)
