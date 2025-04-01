@@ -228,7 +228,7 @@ public class RobotHardware {
     // Drive Code
     /**
      * Calculates the motor powers required to achieve the requested
-     * robot motions: forward (Axial motion) strafe (Lateral motion) and turn (Yaw motion).
+     * robot motions: forward (Axial motion) strafe (Lateral motpo;-ion) and turn (Yaw motion).
      * Then sends these power levels to the motors.
      *
      * @param forward     Fwd/Rev driving power (-1.0 to 1.0) +ve is forward

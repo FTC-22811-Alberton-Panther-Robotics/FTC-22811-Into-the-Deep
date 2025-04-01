@@ -52,6 +52,8 @@ import com.qualcomm.robotcore.util.Range;
 //@Disabled
 public class EvanTankDrive extends OpMode{
 
+    private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
+
     /* Declare OpMode members. */
     public DcMotor leftFrontDrive = null;
     public DcMotor rightFrontDrive = null;
@@ -62,6 +64,7 @@ public class EvanTankDrive extends OpMode{
 //    public Servo    rightClaw   = null;
 
 //    double clawOffset = 0;
+
 
 //    public static final double MID_SERVO   =  0.5 ;
 //    public static final double CLAW_SPEED  = 0.02 ;        // sets rate to move servo
@@ -87,6 +90,11 @@ public class EvanTankDrive extends OpMode{
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 
         // If there are encoders connected, switch to RUN_USING_ENCODER mode for greater accuracy
         // leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -128,7 +136,7 @@ public class EvanTankDrive extends OpMode{
 
         // Run wheels in tank mode (note: The joystick goes negative when pushed forward, so negate it)
         drive = -gamepad1.left_stick_y;
-        rot = gamepad1.left_stick_x;
+        rot = gamepad1.left_stick_x * 0.5;
         denominator = Math.max(drive + rot,1);
         leftFrontDrive.setPower((drive - rot)/denominator);
         leftBackDrive.setPower((drive - rot)/denominator);
