@@ -31,7 +31,6 @@ package org.firstinspires.ftc.teamcode.SkillsUSA;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
@@ -126,8 +125,6 @@ public class EvanTankDrive extends OpMode{
     public void loop() {
         double left;
         double right;
-        double drive;
-        double turn;
 
         // Run wheels in tank mode (note: The joystick goes negative when pushed forward, so negate it)
         left = -gamepad1.left_stick_y;
