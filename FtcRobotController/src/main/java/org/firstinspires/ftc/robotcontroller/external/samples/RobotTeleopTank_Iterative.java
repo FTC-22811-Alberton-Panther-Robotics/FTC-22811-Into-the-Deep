@@ -137,7 +137,7 @@ public class RobotTeleopTank_Iterative extends OpMode{
         leftClaw.setPosition(MID_SERVO + clawOffset);
         rightClaw.setPosition(MID_SERVO - clawOffset);
 
-        // Use gamepad buttons to move the arm up (Y) and down (A)
+        // Use gamepad buttons to move the ] up (Y) and down (A)
         if (gamepad1.y)
             leftArm.setPower(ARM_UP_POWER);
         else if (gamepad1.a)

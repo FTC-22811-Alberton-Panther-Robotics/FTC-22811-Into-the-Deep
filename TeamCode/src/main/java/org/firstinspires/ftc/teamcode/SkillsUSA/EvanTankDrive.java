@@ -32,8 +32,13 @@ package org.firstinspires.ftc.teamcode.SkillsUSA;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+
+
+import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.vision.VisionPortal;
+
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.Range;
 
 /*
  * This OpMode executes a Tank Drive control TeleOp a direct drive robot
@@ -51,22 +56,27 @@ import com.qualcomm.robotcore.util.Range;
 @TeleOp(name="Evan Tank", group="SkillsUSA")
 //@Disabled
 public class EvanTankDrive extends OpMode{
-
+    //Code for the webcam to work
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
+
+    /**
+     * The variable to store our instance of the vision portal.
+     */
+    private VisionPortal visionPortal;
 
     /* Declare OpMode members. */
     public DcMotor leftFrontDrive = null;
     public DcMotor rightFrontDrive = null;
     public DcMotor rightBackDrive = null;
     public DcMotor leftBackDrive = null;
-//    public DcMotor  leftArm     = null;
-//    public Servo    leftClaw    = null;
-//    public Servo    rightClaw   = null;
+    public Servo arm = null;
 
-//    double clawOffset = 0;
+    public Servo claw = null;
+    public Servo wrist = null;
+    public static double armPosition = 0;
+    public static double clawPosition = 0;
+    public static double wristPosition = 0;
 
-
-//    public static final double MID_SERVO   =  0.5 ;
 //    public static final double CLAW_SPEED  = 0.02 ;        // sets rate to move servo
 //    public static final double ARM_UP_POWER    =  0.50 ;   // Run arm motor up at 50% power
 //    public static final double ARM_DOWN_POWER  = -0.25 ;   // Run arm motor down at -25% power
@@ -81,7 +91,10 @@ public class EvanTankDrive extends OpMode{
         rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
         leftBackDrive = hardwareMap.get(DcMotor.class, "left_back_drive");
         rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
-       // leftArm    = hardwareMap.get(DcMotor.class, "left_arm");
+        arm = hardwareMap.get(Servo.class, "arm");
+        claw = hardwareMap.get(Servo.class, "claw");
+        wrist = hardwareMap.get(Servo.class, "wrist");
+
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left and right sticks forward MUST make robot go forward. So adjust these two lines based on your first test drive.
@@ -94,6 +107,12 @@ public class EvanTankDrive extends OpMode{
         rightFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        //webcam stuff
+        initWebcam();
+        telemetry.addData("DS preview on/off", "3 dots, Camera Stream");
+        telemetry.addData(">", "Touch START to start OpMode");
+        telemetry.update();
 
 
         // If there are encoders connected, switch to RUN_USING_ENCODER mode for greater accuracy
@@ -133,6 +152,7 @@ public class EvanTankDrive extends OpMode{
         double drive;
         double rot;
         double denominator;
+        double Arm_power = .75;
 
         // Run wheels in tank mode (note: The joystick goes negative when pushed forward, so negate it)
         drive = -gamepad1.left_stick_y;
@@ -154,18 +174,39 @@ public class EvanTankDrive extends OpMode{
 //        leftClaw.setPosition(MID_SERVO + clawOffset);
 //        rightClaw.setPosition(MID_SERVO - clawOffset);
 //
-//        // Use gamepad buttons to move the arm up (Y) and down (A)
-//        if (gamepad1.y)
-//            leftArm.setPower(ARM_UP_POWER);
-//        else if (gamepad1.a)
-//            leftArm.setPower(ARM_DOWN_POWER);
+        ///Green///
+
+        // claw code
+        clawPosition += (gamepad1.right_trigger - gamepad1.left_trigger) * 0.1;
+        claw.setPosition(clawPosition);
+
+        // Use gamepad buttons to move the arm up (Y) and down (A)
+//        if (gamepad1.dpad_up)
+//            arm.set*Position(Arm_power);
+//        else if (gamepad1.dpad_down)
+//            arm.setPosition(Arm_power);
 //        else
-//            leftArm.setPower(0.0);
+//            arm.setPosition(0.0);
+        //for the arm to move
+        if (gamepad1.right_bumper)
+            armPosition += 0.01;
+        else if (gamepad1.left_bumper)
+            armPosition -= 0.01;
+        arm.setPosition(armPosition);
+
+
+        //for the arm limmit
+        if (armPosition< 0.0) {
+            armPosition = 0.0;
+        } else if (armPosition > 1.0){
+            armPosition = 1.0;
+        }
 //
 //        // Send telemetry message to signify robot running;
 //        telemetry.addData("claw",  "Offset = %.2f", clawOffset);
 //        telemetry.addData("left",  "%.2f", left);
 //        telemetry.addData("right", "%.2f", right);
+//        telemetry.update();
     }
 
     /*
@@ -173,5 +214,40 @@ public class EvanTankDrive extends OpMode{
      */
     @Override
     public void stop() {
+            // Save more CPU resources when camera is no longer needed.
+            visionPortal.close();
     }
+
+    /**
+         * Initialize the AprilTag processor.
+         */
+        private void initWebcam() {
+
+            // Create the vision portal by using a builder.
+            VisionPortal.Builder builder = new VisionPortal.Builder();
+
+            // Set the camera (webcam vs. built-in RC phone camera).
+            if (USE_WEBCAM) {
+                builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
+            } else {
+                builder.setCamera(BuiltinCameraDirection.BACK);
+            }
+
+            // Choose a camera resolution. Not all cameras support all resolutions.
+            //builder.setCameraResolution(new Size(640, 480));
+
+            // Enable the RC preview (LiveView).  Set "false" to omit camera monitoring.
+            //builder.enableLiveView(true);
+
+            // Set the stream format; MJPEG uses less bandwidth than default YUY2.
+            //builder.setStreamFormat(VisionPortal.StreamFormat.YUY2);
+
+            // Choose whether or not LiveView stops if no processors are enabled.
+            // If set "true", monitor shows solid orange screen if no processors enabled.
+            // If set "false", monitor shows camera view without annotations.
+            builder.setAutoStopLiveView(false);
+
+            // Build the Vision Portal, using the above settings.
+            visionPortal = builder.build();
+        }
 }

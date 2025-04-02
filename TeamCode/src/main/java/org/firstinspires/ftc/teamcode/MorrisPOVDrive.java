@@ -209,20 +209,20 @@ public class MorrisPOVDrive extends LinearOpMode {
             // Send telemetry messages to explain controls and show robot status
             telemetry.addData("Drive", "Left Stick");
             telemetry.addData("Turn", "Right Stick");
-            telemetry.addData("Arm Up/Down", "Y & A Buttons");
+            telemetry.addData("arm Up/Down", "Y & A Buttons");
             telemetry.addData("Lift Extend/Retract", "X & B Buttons");
             telemetry.addData("Gripper Open/Closed", "Left and Right Bumpers");
             telemetry.addData("-", "-------");
 
             telemetry.addData("Drive Power", "%.2f", forward);
             telemetry.addData("Turn Power",  "%.2f", turn);
-//            telemetry.addData("Arm Extend Power",  "%.2f", armExtendTarget);
-            telemetry.addData("Arm Angle Relative to Zero", "%.2f",robot.getArmAngleRelativeToZero());
-            telemetry.addData("Arm Target Angle", "%.2f",robot.getArmTargetAngle());
-            telemetry.addData("Arm Position", "%.2f",robot.getArmEncoderCounts());
-            telemetry.addData("Arm Target Position", "%.2f",robot.getArmTargetPosition());
-            telemetry.addData("Arm State", robot.getArmState());
-            telemetry.addData("Arm Current (Amps)", robot.getArmCurrentAmps());
+//            telemetry.addData("arm Extend Power",  "%.2f", armExtendTarget);
+            telemetry.addData("arm Angle Relative to Zero", "%.2f",robot.getArmAngleRelativeToZero());
+            telemetry.addData("arm Target Angle", "%.2f",robot.getArmTargetAngle());
+            telemetry.addData("arm Position", "%.2f",robot.getArmEncoderCounts());
+            telemetry.addData("arm Target Position", "%.2f",robot.getArmTargetPosition());
+            telemetry.addData("arm State", robot.getArmState());
+            telemetry.addData("arm Current (Amps)", robot.getArmCurrentAmps());
             telemetry.addData("Runtime", "%.2f",runtime.seconds());
 
             telemetry.update();

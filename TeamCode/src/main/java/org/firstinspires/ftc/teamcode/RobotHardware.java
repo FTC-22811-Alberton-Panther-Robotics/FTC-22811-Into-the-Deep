@@ -106,7 +106,7 @@ public class RobotHardware {
     private static final double WRIST_INCREMENT = 0.02 ; // sets rate to move wrist servo
     private static final double WRIST_MAX_ANGLE  = 300 ; // Adjust this angle if SRS servo programmer has limited servo travel to less than 300
 
-    // Arm Constants
+    // arm Constants
     private static final long ARM_POSITION_TIMEOUT = 3000;
     private static final int ARM_INCREMENT_DEGREES = 10, ARM_ROTATE_MAX = 290, ARM_ROTATE_MIN = -20, ARM_ROTATE_ENCODER_RESOLUTION = 28, ARM_ROTATE_GEAR_RATIO = 60, // Straight forward defined as 0 degrees
             ARM_STARTING_ANGLE_OFFSET = 0, ARM_STOW = ARM_STARTING_ANGLE_OFFSET, ARM_INTAKE_FLOOR = 180, SPECIMEN_INTAKE_ON_WALL = 245, HIGH_CHAMBER_SCORE = 160, ARM_OUTTAKE = 80;
@@ -131,7 +131,7 @@ public class RobotHardware {
     public enum ArmState {IDLE, MOVING_TO_TARGET, HOLDING_POSITION, STALLED, TIMEOUT, STOW, ERROR}
     private ArmState armCurrentState = ArmState.IDLE;
     ElapsedTime armStateTimer = new ElapsedTime();
-    // Arm Variables
+    // arm Variables
     public int armPositionIndex = 0;
     private int armTargetPosition = 0;
     public boolean holdArm = true; // consider triggering the hold behavior in the opMode with a button press. TRUE: maintain arm power after RUN_TO_POSITION is complete, FALSE: stop arm power
@@ -174,7 +174,7 @@ public class RobotHardware {
         // Take advantage of the extended features of the DcMotorEx class, such as reading current draw and setting velocity, if the motor supports it
         if (arm instanceof DcMotorEx) {
             armEx = (DcMotorEx) arm;
-        } else telemetry.addData("WARNING: ", "Arm is not a DcMotorEx");
+        } else telemetry.addData("WARNING: ", "arm is not a DcMotorEx");
         if (leftLift instanceof DcMotorEx) {
             leftLiftEx = (DcMotorEx) leftLift;
         } else telemetry.addData("WARNING: ", "Left lift is not a DcMotorEx");
@@ -293,7 +293,7 @@ public class RobotHardware {
         return new int[]{leftFrontDrive.getCurrentPosition(), leftRearDrive.getCurrentPosition(), rightFrontDrive.getCurrentPosition(), rightRearDrive.getCurrentPosition()};
     }
 
-    // Arm Code
+    // arm Code
     // The following function creates a state machine. A state machine is a computational model that represents a system with a finite number of states and transitions between
     // those states. It's a powerful tool for managing complex logic and behavior, especially in systems with dynamic or event-driven interactions.
     // Key Components:

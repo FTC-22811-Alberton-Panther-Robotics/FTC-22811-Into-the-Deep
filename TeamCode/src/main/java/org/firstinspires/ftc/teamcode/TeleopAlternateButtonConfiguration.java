@@ -226,7 +226,7 @@ public class TeleopAlternateButtonConfiguration extends LinearOpMode {
             // Send telemetry messages to explain controls and show robot status
             telemetry.addLine("Drive/Strafe: Left Stick");
             telemetry.addLine("Turn: Right Stick");
-            telemetry.addLine("Arm Score: Y, Intake: X, Up/Down: B & A Buttons");
+            telemetry.addLine("arm Score: Y, Intake: X, Up/Down: B & A Buttons");
             telemetry.addLine("Lift Extend/Retract: Dpad Up & Down Buttons");
             telemetry.addLine("Gripper Open/Closed: Left and Right Bumpers");
             telemetry.addLine("--------");
@@ -235,14 +235,14 @@ public class TeleopAlternateButtonConfiguration extends LinearOpMode {
 //            telemetry.addData("Turn Power",  "%.2f", turn);
 //            telemetry.addData("Wrist Position", "%.2f", robot.getWristPosition());
 //            telemetry.addData("Wrist Angle", "%.2f", robot.getWristAngle());
-//            telemetry.addData("Arm Position Index", robot.armPositionIndex);
-            telemetry.addData("Arm Angle Preset Target", robot.ARM_PRESET_ANGLES[robot.armPositionIndex]);
-            telemetry.addData("Arm Angle Relative to Zero", "%.2f",robot.getArmAngleRelativeToZero());
-            telemetry.addData("Arm Target Angle", "%.2f",robot.getArmTargetAngle());
-            telemetry.addData("Arm Position", "%.2f",robot.getArmEncoderCounts());
-            telemetry.addData("Arm Target Position", "%.2f",robot.getArmTargetPosition());
-            telemetry.addData("Arm State", robot.getArmState());
-            telemetry.addData("Arm Current (Amps)", robot.getArmCurrentAmps());
+//            telemetry.addData("arm Position Index", robot.armPositionIndex);
+            telemetry.addData("arm Angle Preset Target", robot.ARM_PRESET_ANGLES[robot.armPositionIndex]);
+            telemetry.addData("arm Angle Relative to Zero", "%.2f",robot.getArmAngleRelativeToZero());
+            telemetry.addData("arm Target Angle", "%.2f",robot.getArmTargetAngle());
+            telemetry.addData("arm Position", "%.2f",robot.getArmEncoderCounts());
+            telemetry.addData("arm Target Position", "%.2f",robot.getArmTargetPosition());
+            telemetry.addData("arm State", robot.getArmState());
+            telemetry.addData("arm Current (Amps)", robot.getArmCurrentAmps());
 //            telemetry.addData("Lift State", robot.getLiftState());
 //            telemetry.addData("Lift Position Index", robot.liftPositionIndex);
 //            telemetry.addData("Lift Preset Target Position", robot.LIFT_POSITIONS[robot.liftPositionIndex]);
