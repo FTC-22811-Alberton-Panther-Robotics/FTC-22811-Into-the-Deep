@@ -79,13 +79,13 @@ public class ElijahTeleop extends OpMode{
 
     public Servo wrist = null;
 
-    public static double wirstPostiton = 0;
+    public static double wristPosition = 0;
 
-    public static double clawPostition = 0;
+    public static double clawPosition = 0;
 
-    public static double upperArmPostition = 0;
+    public static double upperArmPosition = 0;
 
-    public static double lowerArmPostition = 0;
+    public static double lowerArmPosition = 0;
 
 
 //    double clawOffset = 0;
@@ -164,49 +164,64 @@ public class ElijahTeleop extends OpMode{
 
         //wirst movements
         if (gamepad1.a) {
-            wirstPostiton += 0.01;
+            wristPosition += 0.01;
         }
         else if (gamepad1.b) {
-            wirstPostiton -= 0.01;
+            wristPosition -= 0.01;
         }
-            //claw movementa
+
+        //wirst limit for servo
+        if (wristPosition < 0.0) {
+            wristPosition = 0.0;
+        } else if (wristPosition > 1.0) {
+            wristPosition = 1.0;
+        }
+
+        wrist.setPosition(wristPosition);
+
+            //claw movement
         if (gamepad1.x) {
-            clawPostition += 0.01;
+            clawPosition += 0.01;
         }
         else if (gamepad1.y) {
-            clawPostition -= 0.01;
+            clawPosition -= 0.01;
         }
+
+        //claw limit for servo
+        if (clawPosition < 0.0) {
+            clawPosition = 0.0;
+        } else if (clawPosition > 1.0) {
+            clawPosition = 1.0;
+        }
+
+        claw.setPosition(clawPosition);
+
+        // Lower arm position
+        if (gamepad1.right_bumper) {
+            lowerArmPosition += 0.01;
+        } else if (gamepad1.right_trigger > 0.1) { // Added a small deadzone
+            lowerArmPosition -= 0.01;
+        }
+
+// Upper arm position
+        if (gamepad1.left_bumper) {
+            upperArmPosition += 0.01;
+        } else if (gamepad1.left_trigger > 0.1) { // Added a small deadzone
+            upperArmPosition -= 0.01;
+        }
+
 
         // Run wheels in tank mode (note: The joystick goes negative when pushed forward, so negate it)
         left = -gamepad1.left_stick_y;
         right = -gamepad1.right_stick_y;
+
 
         leftFront.setPower(left);
         leftback.setPower(left);
         rightback.setPower(right);
         rightfront.setPower(right);
 
-//        // Use gamepad left & right Bumpers to open and close the claw
-//        if (gamepad1.right_bumper)
-//            clawOffset += CLAW_SPEED;
-//        else if (gamepad1.left_bumper)
-//            clawOffset -= CLAW_SPEED;
-//
-//        // Move both servos to new position.  Assume servos are mirror image of each other.
-//        clawOffset = Range.clip(clawOffset, -0.5, 0.5);
-//        leftClaw.setPosition(MID_SERVO + clawOffset);
-//        rightClaw.setPosition(MID_SERVO - clawOffset);
-//
-//        // Use gamepad buttons to move the arm up (Y) and down (A)
-//        if (gamepad1.y)
-//            leftArm.setPower(ARM_UP_POWER);
-//        else if (gamepad1.a)
-//            leftArm.setPower(ARM_DOWN_POWER);
-//        else
-//            leftArm.setPower(0.0);
-//
-//        // Send telemetry message to signify robot running;
-//        telemetry.addData("claw",  "Offset = %.2f", clawOffset);
+
         telemetry.addData("left",  "%.2f", left);
         telemetry.addData("right", "%.2f", right);
     }
