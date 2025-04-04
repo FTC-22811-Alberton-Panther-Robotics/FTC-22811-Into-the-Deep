@@ -38,6 +38,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDir
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
 
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 /*
@@ -99,10 +100,10 @@ public class EvanTankDrive extends OpMode{
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left and right sticks forward MUST make robot go forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
         leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -148,7 +149,7 @@ public class EvanTankDrive extends OpMode{
      */
     @Override
     public void loop() {
- 
+
         double drive;
         double rot;
         double denominator;
@@ -158,10 +159,10 @@ public class EvanTankDrive extends OpMode{
         drive = -gamepad1.left_stick_y;
         rot = gamepad1.left_stick_x * 0.5;
         denominator = Math.max(drive + rot,1);
-        leftFrontDrive.setPower((drive + rot)/denominator);
-        leftBackDrive.setPower((drive + rot)/denominator);
-        rightFrontDrive.setPower((drive - rot)/denominator);
-        rightBackDrive.setPower((drive - rot)/denominator);
+        leftFrontDrive.setPower((drive - rot)/denominator);
+        leftBackDrive.setPower((drive - rot)/denominator);
+        rightFrontDrive.setPower((drive + rot)/denominator);
+        rightBackDrive.setPower((drive + rot)/denominator);
 //
 // Use gamepad left & right Bumpers to open and close the claw
 //        if (gamepad1.right_bumper)
