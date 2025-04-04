@@ -34,6 +34,10 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.vision.VisionPortal;
+
 /*
  * This OpMode executes a Tank Drive control TeleOp a direct drive robot
  * The code is structured as an Iterative OpMode
@@ -49,27 +53,22 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 
 
-
-
-
 @TeleOp(name="Elijah Tank", group="SkillsUSA")
 //@Disabled
-public class ElijahTeleop extends OpMode{
+public class ElijahTeleop extends OpMode {
 
     /* Declare OpMode members. */
 
+    private VisionPortal visionPortal;
 
-
-
-
-
+    private static final boolean USE_WEBCAM = true;
 
     public DcMotor leftFront = null;
-    public DcMotor rightfront = null;
+    public DcMotor rightFront = null;
 
-    public DcMotor rightback = null;
+    public DcMotor rightBack = null;
 
-    public DcMotor leftback = null;
+    public DcMotor leftBack = null;
 
     public DcMotor lowerArm = null;
 
@@ -78,22 +77,16 @@ public class ElijahTeleop extends OpMode{
     public Servo claw = null;
 
     public Servo wrist = null;
-
+    public static final int ARM_INCREMENT = 100;
+    public static final int ARM_MAX = 1000;
+    public static final int ARM_MIN = 0;
+    public static final int SLIDE_INCREMENT = 100;
+    public static final int SLIDE_MAX = 1000;
+    public static final int SLIDE_MIN = 0;
     public static double wristPosition = 0;
-
     public static double clawPosition = 0;
-
     public static double upperArmPosition = 0;
-
     public static double lowerArmPosition = 0;
-
-
-//    double clawOffset = 0;
-
-//    public static final double MID_SERVO   =  0.5 ;
-//    public static final double CLAW_SPEED  = 0.02 ;        // sets rate to move servo
-//    public static final double ARM_UP_POWER    =  0.50 ;   // Run arm motor up at 50% power
-//    public static final double ARM_DOWN_POWER  = -0.25 ;   // Run arm motor down at -25% power
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -102,9 +95,9 @@ public class ElijahTeleop extends OpMode{
     public void init() {
         // Define and Initialize Motors
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
-        rightfront = hardwareMap.get(DcMotor.class, "rightFront");
-        leftback = hardwareMap.get(DcMotor.class, "leftback");
-        rightback= hardwareMap.get(DcMotor.class, "rightback");
+        rightFront = hardwareMap.get(DcMotor.class, "rightFront");
+        leftBack = hardwareMap.get(DcMotor.class, "leftBack");
+        rightBack = hardwareMap.get(DcMotor.class, "rightBack");
         lowerArm = hardwareMap.get(DcMotor.class, "lowerarm");
         upperArm = hardwareMap.get(DcMotor.class, "upperarm");
         claw = hardwareMap.get(Servo.class, "claw");
@@ -114,20 +107,13 @@ public class ElijahTeleop extends OpMode{
         // Pushing the left and right sticks forward MUST make robot go forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
         leftFront.setDirection(DcMotor.Direction.REVERSE);
-        rightfront.setDirection(DcMotor.Direction.FORWARD);
-        leftback.setDirection(DcMotor.Direction.REVERSE);
-        rightback.setDirection(DcMotor.Direction.FORWARD);
+        rightFront.setDirection(DcMotor.Direction.FORWARD);
+        leftBack.setDirection(DcMotor.Direction.REVERSE);
+        rightBack.setDirection(DcMotor.Direction.FORWARD);
 
-        // If there are encoders connected, switch to RUN_USING_ENCODER mode for greater accuracy
-        // leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        // rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-//        // Define and initialize ALL installed servos.
-//        leftClaw  = hardwareMap.get(Servo.class, "left_hand");
-//        rightClaw = hardwareMap.get(Servo.class, "right_hand");
-//        leftClaw.setPosition(MID_SERVO);
-//        rightClaw.setPosition(MID_SERVO);
-
+        //webcam stuff
+        initWebcam();
+        telemetry.addData("DS preview on/off", "3 dots, Camera Stream");
         // Send telemetry message to signify robot waiting;
         telemetry.addData(">", "Robot Ready.  Press START.");    //
     }
@@ -151,79 +137,70 @@ public class ElijahTeleop extends OpMode{
      */
     @Override
     public void loop() {
-        double left;
-        double right;
         double drive;
-        double turn;
-        double lowerArmForward;
-        double lowerArmBackward;
-        double upperArmForward;
-        double upperArmBackward;
+        double rot;
+        double denominator;
+        double Arm_power = .75;
 
+        // Run  wheels in tank mode (note: The joystick goes negative when pushed forward, so negate it)
+        drive = -gamepad1.left_stick_y;
+        rot = gamepad1.left_stick_x * 0.5;
+        denominator = Math.max(drive + rot, 1);
+        leftFront.setPower((drive - rot) / denominator);
+        leftBack.setPower((drive - rot) / denominator);
+        rightFront.setPower((drive + rot) / denominator);
+        rightBack.setPower((drive + rot) / denominator);
 
-
-        //wirst movements
-        if (gamepad1.a) {
-            wristPosition += 0.01;
+        // Claw code
+        clawPosition += (gamepad1.right_trigger - gamepad1.left_trigger) * .03;
+        claw.setPosition(clawPosition);
+        //Claw limit
+        if (clawPosition > 1)
+            clawPosition = 1;
+        else if (clawPosition < 0) {
+            clawPosition = 0;
         }
-        else if (gamepad1.b) {
+
+        //Wrist code
+        if (gamepad1.right_bumper) {
+            wristPosition += 0.01;
+        } else if (gamepad1.left_bumper) {
             wristPosition -= 0.01;
         }
-
-        //wirst limit for servo
-        if (wristPosition < 0.0) {
-            wristPosition = 0.0;
-        } else if (wristPosition > 1.0) {
-            wristPosition = 1.0;
+        //Wrist limit
+        if (wristPosition > 1)
+            wristPosition = 1;
+        else if (wristPosition < 0) {
+            wristPosition = 0;
         }
-
         wrist.setPosition(wristPosition);
 
-            //claw movement
-        if (gamepad1.x) {
-            clawPosition += 0.01;
-        }
-        else if (gamepad1.y) {
-            clawPosition -= 0.01;
-        }
+        // Use gamepad buttons to move the arm up (Y) and down (A)
 
-        //claw limit for servo
-        if (clawPosition < 0.0) {
-            clawPosition = 0.0;
-        } else if (clawPosition > 1.0) {
-            clawPosition = 1.0;
-        }
+        lowerArm.setTargetPosition(lowerArm.getCurrentPosition() - (int) (gamepad1.right_stick_y * ARM_INCREMENT));
+        upperArm.setTargetPosition(upperArm.getCurrentPosition() + (int) (gamepad1.right_stick_x * SLIDE_INCREMENT));
+        lowerArm.setPower(1);
+        lowerArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        upperArm.setPower(1);
+        upperArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        claw.setPosition(clawPosition);
+//        if (lift_motor.getCurrentPosition() > ARM_MAX)
+//            lift_motor.setTargetPosition((int) ARM_MAX);
+//        else if (lift_motor.getCurrentPosition() < ARM_MIN)
+//            lift_motor.setTargetPosition((int) ARM_MIN);
+//
+//        if (slide_motor.getCurrentPosition() > SLIDE_MAX)
+//            slide_motor.setTargetPosition((int) SLIDE_MAX);
+//        else if (slide_motor.getCurrentPosition() < SLIDE_MIN)
+//            slide_motor.setTargetPosition((int) SLIDE_MIN);
 
-        // Lower arm position
-        if (gamepad1.right_bumper) {
-            lowerArmPosition += 0.01;
-        } else if (gamepad1.right_trigger > 0.1) { // Added a small deadzone
-            lowerArmPosition -= 0.01;
-        }
-
-// Upper arm position
-        if (gamepad1.left_bumper) {
-            upperArmPosition += 0.01;
-        } else if (gamepad1.left_trigger > 0.1) { // Added a small deadzone
-            upperArmPosition -= 0.01;
-        }
-
-
-        // Run wheels in tank mode (note: The joystick goes negative when pushed forward, so negate it)
-        left = -gamepad1.left_stick_y;
-        right = -gamepad1.right_stick_y;
-
-
-        leftFront.setPower(left);
-        leftback.setPower(left);
-        rightback.setPower(right);
-        rightfront.setPower(right);
-
-
-        telemetry.addData("left",  "%.2f", left);
-        telemetry.addData("right", "%.2f", right);
+        // Send telemetry message to signify robot running;
+        telemetry.addData("claw position: ", clawPosition);
+        telemetry.addData("wrist position: ", wristPosition);
+        telemetry.addData("lower arm position: ", lowerArm.getCurrentPosition());
+        telemetry.addData("upper arm position: ", upperArm.getCurrentPosition());
+        telemetry.addData("drive", "%.2f", drive);
+        telemetry.addData("right", "%.2f", rot);
     }
 
     /*
@@ -231,5 +208,41 @@ public class ElijahTeleop extends OpMode{
      */
     @Override
     public void stop() {
+        // Save more CPU resources when camera is no longer needed.
+        visionPortal.close();
+    }
+
+    /**
+     * Initialize the AprilTag processor.
+     */
+    private void initWebcam() {
+
+        // Create the vision portal by using a builder.
+        VisionPortal.Builder builder = new VisionPortal.Builder();
+
+        // Set the camera (webcam vs. built-in RC phone camera).
+        if (USE_WEBCAM) {
+            builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
+        } else {
+            builder.setCamera(BuiltinCameraDirection.BACK);
+        }
+
+        // Choose a camera resolution. Not all cameras support all resolutions.
+        //builder.setCameraResolution(new Size(640, 480));
+
+        // Enable the RC preview (LiveView).  Set "false" to omit camera monitoring.
+        //builder.enableLiveView(true);
+
+        // Set the stream format; MJPEG uses less bandwidth than default YUY2.
+        //builder.setStreamFormat(VisionPortal.StreamFormat.YUY2);
+
+        // Choose whether or not LiveView stops if no processors are enabled.
+        // If set "true", monitor shows solid orange screen if no processors enabled.
+        // If set "false", monitor shows camera view without annotations.
+        builder.setAutoStopLiveView(false);
+
+        // Build the Vision Portal, using the above settings.
+        visionPortal = builder.build();
     }
 }
+

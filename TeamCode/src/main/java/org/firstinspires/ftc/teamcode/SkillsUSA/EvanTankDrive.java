@@ -178,36 +178,38 @@ public class EvanTankDrive extends OpMode{
         ///Green///
 
         // claw code
-        clawPosition += (gamepad1.right_trigger - gamepad1.left_trigger) * 0.1;
+        clawPosition += (gamepad1.right_trigger - gamepad1.left_trigger) * 0.03;
         claw.setPosition(clawPosition);
 
-        // Use gamepad buttons to move the arm up (Y) and down (A)
-//        if (gamepad1.dpad_up)
-//            arm.set*Position(Arm_power);
-//        else if (gamepad1.dpad_down)
-//            arm.setPosition(Arm_power);
-//        else
-//            arm.setPosition(0.0);
-        //for the arm to move
-        if (gamepad1.right_bumper)
-            armPosition += 0.01;
-        else if (gamepad1.left_bumper)
-            armPosition -= 0.01;
-        arm.setPosition(armPosition);
+        //Wrist code
+        if (gamepad1.right_bumper) {
+            wristPosition += 0.01;
+        } else if (gamepad1.left_bumper) {
+            wristPosition -= 0.01;
+        }
+        //Wrist limit
+        if (wristPosition > 1)
+            wristPosition = 1;
+        else if (wristPosition < 0) {
+            wristPosition = 0;
+        }
+        wrist.setPosition(wristPosition);
 
+        // ARM CODE
+        arm.setPosition(arm.getPosition() + 0.2 * gamepad1.right_stick_y);
 
-        //for the arm limmit
+        //for the arm limit
         if (armPosition< 0.0) {
             armPosition = 0.0;
         } else if (armPosition > 1.0){
             armPosition = 1.0;
         }
-//
-//        // Send telemetry message to signify robot running;
-//        telemetry.addData("claw",  "Offset = %.2f", clawOffset);
-//        telemetry.addData("left",  "%.2f", left);
-//        telemetry.addData("right", "%.2f", right);
-//        telemetry.update();
+        // Send telemetry message to signify robot running;
+        telemetry.addData("claw position: ", clawPosition);
+        telemetry.addData("wrist position: ", wristPosition);
+        telemetry.addData("arm position: ", arm.getPosition());
+        telemetry.addData("drive", "%.2f", drive);
+        telemetry.addData("right", "%.2f", rot);
     }
 
     /*
