@@ -154,7 +154,7 @@ public class EvanTankDrive extends OpMode{
         double denominator;
         double Arm_power = .75;
 
-        // Run wheels in tank mode (note: The joystick goes negative when pushed forward, so negate it)
+        // Run  wheels in tank mode (note: The joystick goes negative when pushed forward, so negate it)
         drive = -gamepad1.left_stick_y;
         rot = gamepad1.left_stick_x * 0.5;
         denominator = Math.max(drive + rot,1);
