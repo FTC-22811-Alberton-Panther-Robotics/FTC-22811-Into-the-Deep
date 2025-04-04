@@ -158,10 +158,10 @@ public class EvanTankDrive extends OpMode{
         drive = -gamepad1.left_stick_y;
         rot = gamepad1.left_stick_x * 0.5;
         denominator = Math.max(drive + rot,1);
-        leftFrontDrive.setPower((drive - rot)/denominator);
-        leftBackDrive.setPower((drive - rot)/denominator);
-        rightFrontDrive.setPower((drive + rot)/denominator);
-        rightBackDrive.setPower((drive + rot)/denominator);
+        leftFrontDrive.setPower((drive + rot)/denominator);
+        leftBackDrive.setPower((drive + rot)/denominator);
+        rightFrontDrive.setPower((drive - rot)/denominator);
+        rightBackDrive.setPower((drive - rot)/denominator);
 //
 // Use gamepad left & right Bumpers to open and close the claw
 //        if (gamepad1.right_bumper)
