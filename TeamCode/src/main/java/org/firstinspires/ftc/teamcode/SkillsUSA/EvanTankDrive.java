@@ -153,7 +153,7 @@ public class EvanTankDrive extends OpMode{
         double drive;
         double rot;
         double denominator;
-        double Arm_power = .75;
+        double Arm_power = .5;
 
         // Run  wheels in tank mode (note: The joystick goes negative when pushed forward, so negate it)
         drive = -gamepad1.left_stick_y;
@@ -177,9 +177,21 @@ public class EvanTankDrive extends OpMode{
 //
         ///Green///
 
-        // claw code
+         //claw code
         clawPosition += (gamepad1.right_trigger - gamepad1.left_trigger) * 0.03;
+        if (clawPosition > 1)
+            clawPosition = 1;
+        else if (clawPosition < 0) {
+            clawPosition = 0;
+        }
         claw.setPosition(clawPosition);
+
+
+//        if (gamepad1.a) {
+//            clawPosition += 0.01;
+//        } else if (gamepad1.b) {
+//            clawPosition -= 0.01;
+//        }
 
         //Wrist code
         if (gamepad1.right_bumper) {
@@ -196,7 +208,7 @@ public class EvanTankDrive extends OpMode{
         wrist.setPosition(wristPosition);
 
         // ARM CODE
-        arm.setPosition(arm.getPosition() + 0.2 * gamepad1.right_stick_y);
+        arm.setPosition(arm.getPosition() + 0.05 * gamepad1.right_stick_y);
 
         //for the arm limit
         if (armPosition< 0.0) {
