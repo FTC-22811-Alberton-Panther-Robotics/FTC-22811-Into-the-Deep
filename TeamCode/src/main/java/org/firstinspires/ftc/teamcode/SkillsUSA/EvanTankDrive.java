@@ -185,6 +185,11 @@ public class EvanTankDrive extends OpMode{
             clawPosition = 0;
         }
         claw.setPosition(clawPosition);
+//        if (gamepad1.right_bumper) {
+//            clawPosition += 0.01;
+//        } else if (gamepad1.left_bumper) {
+//            clawPosition -= 0.01;
+//        }
 
 
 //        if (gamepad1.a) {
