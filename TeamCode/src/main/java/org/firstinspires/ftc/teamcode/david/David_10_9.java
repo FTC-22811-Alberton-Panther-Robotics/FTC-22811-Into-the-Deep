@@ -15,8 +15,8 @@ public class David_10_9 extends LinearOpMode
 {
     DcMotor leftFrontDrive;
     DcMotor rightFrontDrive;
-    DcMotor leftBackDrive;
-    DcMotor rightBackDrive;
+    DcMotor leftRearDrive;
+    DcMotor rightRearDrive;
     // called when init button is  pressed.
 
     @Override
@@ -24,11 +24,11 @@ public class David_10_9 extends LinearOpMode
     {
         leftFrontDrive = hardwareMap.get(DcMotor.class, "left_front_drive");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
-        leftBackDrive = hardwareMap.get(DcMotor.class, "left_back_drive");
-        rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
+        leftRearDrive = hardwareMap.get(DcMotor.class, "left_rear_drive");
+        rightRearDrive = hardwareMap.get(DcMotor.class, "right_rear_drive");
 
         leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftRearDrive.setDirection(DcMotor.Direction.REVERSE);
 
 
         telemetry.addData("Mode", "waiting");
@@ -45,8 +45,8 @@ public class David_10_9 extends LinearOpMode
 
         leftFrontDrive.setPower(0.25);
         rightFrontDrive.setPower(0.25);
-        leftBackDrive.setPower(0.25);
-        rightBackDrive.setPower(0.25);
+        leftRearDrive.setPower(0.25);
+        rightRearDrive.setPower(0.25);
 
         sleep(2000);        // wait for 2 seconds.
 
@@ -54,7 +54,7 @@ public class David_10_9 extends LinearOpMode
 
         leftFrontDrive.setPower(0);
         rightFrontDrive.setPower(0);
-        leftBackDrive.setPower(0);
-        rightBackDrive.setPower(0);
+        leftRearDrive.setPower(0);
+        rightRearDrive.setPower(0);
     }
 }
