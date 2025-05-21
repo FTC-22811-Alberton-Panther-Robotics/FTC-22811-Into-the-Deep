@@ -31,7 +31,9 @@ package org.firstinspires.ftc.teamcode.SkillsUSA;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
@@ -102,14 +104,20 @@ public class ElijahTeleop extends OpMode {
         upperArm = hardwareMap.get(DcMotor.class, "upperarm");
         claw = hardwareMap.get(Servo.class, "claw");
         wrist = hardwareMap.get(Servo.class, "wrist");
+        claw = hardwareMap.get(Servo.class, "claw");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left and right sticks forward MUST make robot go forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
         leftFront.setDirection(DcMotor.Direction.REVERSE);
-        rightFront.setDirection(DcMotor.Direction.FORWARD);
-        leftBack.setDirection(DcMotor.Direction.REVERSE);
+        rightFront.setDirection(DcMotor.Direction.REVERSE);
+        leftBack.setDirection(DcMotor.Direction.FORWARD);
         rightBack.setDirection(DcMotor.Direction.FORWARD);
+        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 
         //webcam stuff
         initWebcam();
@@ -144,12 +152,12 @@ public class ElijahTeleop extends OpMode {
 
         // Run  wheels in tank mode (note: The joystick goes negative when pushed forward, so negate it)
         drive = -gamepad1.left_stick_y;
-        rot = gamepad1.left_stick_x * 0.5;
-        denominator = Math.max(drive + rot, 1);
-        leftFront.setPower((drive - rot) / denominator);
-        leftBack.setPower((drive - rot) / denominator);
-        rightFront.setPower((drive + rot) / denominator);
-        rightBack.setPower((drive + rot) / denominator);
+        rot = -gamepad1.left_stick_x;
+        denominator = Math.max(drive + rot,1);
+        leftFront.setPower((drive - rot)/denominator);
+        leftBack.setPower((drive - rot)/denominator);
+        rightFront.setPower((drive + rot)/denominator);
+        rightBack.setPower((drive + rot)/denominator);
 
         // Claw code
         clawPosition += (gamepad1.right_trigger - gamepad1.left_trigger) * .03;
@@ -163,9 +171,10 @@ public class ElijahTeleop extends OpMode {
 
         //Wrist code
         if (gamepad1.right_bumper) {
-            wristPosition += 0.01;
+            wristPosition += 0.009;
         } else if (gamepad1.left_bumper) {
-            wristPosition -= 0.01;
+            wristPosition -= 0.009
+            ;
         }
         //Wrist limit
         if (wristPosition > 1)
@@ -180,9 +189,11 @@ public class ElijahTeleop extends OpMode {
         lowerArm.setTargetPosition(lowerArm.getCurrentPosition() - (int) (gamepad1.right_stick_y * ARM_INCREMENT));
         upperArm.setTargetPosition(upperArm.getCurrentPosition() + (int) (gamepad1.right_stick_x * SLIDE_INCREMENT));
         lowerArm.setPower(1);
+      //
+        //
         lowerArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         upperArm.setPower(1);
-        upperArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+       upperArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
 //        if (lift_motor.getCurrentPosition() > ARM_MAX)
 //            lift_motor.setTargetPosition((int) ARM_MAX);
@@ -191,7 +202,7 @@ public class ElijahTeleop extends OpMode {
 //
 //        if (slide_motor.getCurrentPosition() > SLIDE_MAX)
 //            slide_motor.setTargetPosition((int) SLIDE_MAX);
-//        else if (slide_motor.getCurrentPosition() < SLIDE_MIN)
+//        else if (slide_motor.getCurrentPosition() < SLIDE_MI6N)
 //            slide_motor.setTargetPosition((int) SLIDE_MIN);
 
         // Send telemetry message to signify robot running;

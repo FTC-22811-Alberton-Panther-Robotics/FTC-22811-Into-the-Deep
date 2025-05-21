@@ -73,8 +73,8 @@ public class RobotHardware {
     public static boolean opModeActive = false;
 
     // Define Motor and Servo objects  (Make them private so they can't be accessed externally)
-    private DcMotor leftFrontDrive   = null;
-    private DcMotor leftRearDrive   = null;
+    private DcMotor left_front_Drive = null;
+    private DcMotor left_rear_drive = null;
     private DcMotor rightFrontDrive  = null;
     private DcMotor rightRearDrive  = null;
     private DcMotor arm = null;
@@ -163,8 +163,8 @@ public class RobotHardware {
      */
     public void init()    {
         // Define and Initialize Motors (note: need to use reference to actual OpMode).
-        leftFrontDrive  = myOpMode.hardwareMap.get(DcMotor.class, "left_front_drive");
-        leftRearDrive  = myOpMode.hardwareMap.get(DcMotor.class, "left_rear_drive");
+        left_front_Drive = myOpMode.hardwareMap.get(DcMotor.class, "left_front_drive");
+        left_rear_drive = myOpMode.hardwareMap.get(DcMotor.class, "left_rear_drive");
         rightFrontDrive = myOpMode.hardwareMap.get(DcMotor.class, "right_front_drive");
         rightRearDrive  = myOpMode.hardwareMap.get(DcMotor.class, "right_rear_drive");
         arm = myOpMode.hardwareMap.get(DcMotor.class, "arm");
@@ -185,8 +185,8 @@ public class RobotHardware {
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
         // Note: The settings here reflect our belt drive wheels. 90degree miter gear driven wheels need the directions flipped.
-        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        leftRearDrive.setDirection(DcMotor.Direction.REVERSE);
+        left_front_Drive.setDirection(DcMotor.Direction.REVERSE);
+        left_rear_drive.setDirection(DcMotor.Direction.REVERSE);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightRearDrive.setDirection(DcMotor.Direction.FORWARD);
         arm.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -194,8 +194,8 @@ public class RobotHardware {
         rightLift.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Reset encoders at start of program
-        leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftRearDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        left_front_Drive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        left_rear_drive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightRearDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -203,8 +203,8 @@ public class RobotHardware {
         rightLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         // Since there are encoders connected, RUN_USING_ENCODER mode is enabled for greater accuracy
-        leftFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        leftRearDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        left_front_Drive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        left_rear_drive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightRearDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -284,13 +284,13 @@ public class RobotHardware {
      */
     public void setDrivePower(double leftFront, double leftRear, double rightFront, double rightRear) {
         // Output the values to the motor drives.
-        leftFrontDrive.setPower(leftFront);
-        leftRearDrive.setPower(leftRear);
+        left_front_Drive.setPower(leftFront);
+        left_rear_drive.setPower(leftRear);
         rightFrontDrive.setPower(rightFront);
         rightRearDrive.setPower(rightRear);
     }
     public int[] getDriveEncoderValues(){
-        return new int[]{leftFrontDrive.getCurrentPosition(), leftRearDrive.getCurrentPosition(), rightFrontDrive.getCurrentPosition(), rightRearDrive.getCurrentPosition()};
+        return new int[]{left_front_Drive.getCurrentPosition(), left_rear_drive.getCurrentPosition(), rightFrontDrive.getCurrentPosition(), rightRearDrive.getCurrentPosition()};
     }
 
     // arm Code
