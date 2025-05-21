@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 @Autonomous(name="davidSquare", group="Exercises")
 //@Disabled
-public class davidSquare extends LinearOpMode
+public class david_10_10_Square extends LinearOpMode
 {
     DcMotor leftFrontDrive;
     DcMotor rightFrontDrive;
