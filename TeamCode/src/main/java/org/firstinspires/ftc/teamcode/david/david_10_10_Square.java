@@ -51,36 +51,33 @@ public class david_10_10_Square extends LinearOpMode
 
             sleep(1000); // drive straight for 1 second.
 
-            leftFrontDrive.setPower(0);
-            rightFrontDrive.setPower(0);
-            leftRearDrive.setPower(0);
-            rightRearDrive.setPower(0);
-
-            sleep(500);  // wait half second for bot to stop moving.
-
             // now set motors, one forward one reverse. Should cause the bot to rotate.
-
-            leftFrontDrive.setPower(0.25);
+         //left strafe
+            leftFrontDrive.setPower(-0.25);
             rightFrontDrive.setPower(0.25);
-            leftRearDrive.setPower(-0.25);
+            leftRearDrive.setPower(0.25);
             rightRearDrive.setPower(-0.25);
 
 
-            sleep(1700); // adjust this delay to get the bot to rotate 90 degrees.
+            sleep(1000); // adjust this delay to get the bot to rotate 90 degrees.
+            //BACK
+            leftFrontDrive.setPower(-0.25);
+            rightFrontDrive.setPower(-0.25);
+            leftRearDrive.setPower(-0.25);
+            rightRearDrive.setPower(-0.25);
 
-            leftFrontDrive.setPower(0.25);
-            rightFrontDrive.setPower(0.25);
-            leftRearDrive.setPower(0.25);
+            sleep(1000); // wait for bot to stop moving.
+
+            // make sure the motors are off.
+            // RIGHT
+            leftFrontDrive.setPower(0.250);
+            rightFrontDrive.setPower(-0.25);
+            leftRearDrive.setPower(-0.25);
             rightRearDrive.setPower(0.25);
 
-            sleep(500); // wait for bot to stop moving.
+            sleep(1000); // adjust this delay to get the bot to rotate 90 degrees.
         }
 
-        // make sure the motors are off.
 
-        leftFrontDrive.setPower(0);
-        rightFrontDrive.setPower(0);
-        leftRearDrive.setPower(0);
-        rightRearDrive.setPower(0);
     }
 }
